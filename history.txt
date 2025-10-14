@@ -1,0 +1,138 @@
+clear
+ls
+git clone https://github.com/end-4/dots-hyprland.git
+clear
+ls
+cd *
+ls
+cd dots-hyprland/ls
+cd dots-hyprland/
+ls
+clear
+ls
+./install.sh
+ping google.com
+pacman -Syu
+sudo pacman -Syu
+yay -S kitty
+./install.sh
+clear
+lsblk
+grub-install --efi-directory=/efi
+sudo grub-install --efi-directory=/efi
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+lsblk
+sudo mount /dev/sdc2 /mnt
+cd /mnt
+ls
+ls -a
+pacman -S ntfsundelete
+sudo pacman -S ntfsundelete
+ntfsundelete
+sudo pacman -S ntfs-3g
+ntfsundelete
+ntfsundelete --scan /dev/sdc2
+cd ..
+ls
+umount /mnt
+sudo umount /mnt
+ntfsundelete --scan /dev/sdc2
+sudo ntfsundelete --scan /dev/sdc2
+lsblk
+lsblk -f
+extundelete
+pacman -S extundelete
+sudo pacman -S extundelete
+sudo pacman -S testdisk
+photorec
+clear
+ls
+lsblk
+mount /dev/sdc2 /run/media
+sudo mount /dev/sdc2 /run/media
+ls
+cd ~
+ls
+cd go
+ls
+cp -r * /run/media
+sudo mv * /run/media
+clear
+ls
+pacman -S nautilus
+sudo pacman -S nautilus
+sudo pacman -S fastfetch --needed
+clear
+fastfetch
+cd /efi
+ls
+cd EFI/
+ls
+cd arch/
+ls
+exit
+clear
+hostnamectl hostname arcturus
+clear
+killall papers
+clear
+paru -S pywal16
+hyprctl monitor
+hyprctl monitors
+pacman -S nwg-display
+sudo pacman -S nwg-display
+sudo pacman -S nwg-displays
+hyprctl monitors
+nwg-displays
+sudo watch -cn 0.5 sudo progress
+clear
+ls
+mkdir Projects
+ls
+cd Projects
+ls
+clear
+mkdir rust
+cd ~/.config/nushell
+ls
+clear
+ls
+git init
+clear
+ls
+git global --config user.name "aschereverhen"
+git config --global user.name "aschereverhen"
+git config --global user.email "aschereverhen@gmail.com"
+clear
+git config --list
+pacman -S less
+sudo pacman -S less
+clear
+git config --list
+clear
+ls
+sudo pacman -S dolphin
+git remove add origin https://github.com/AschereVerhen/NuDots.git
+git remote add origin https://github.com/AschereVerhen/NuDots.git
+clear
+git remote add origin https://github.com/AschereVerhen/NuDots.git
+nvim ../hypr/hyprland/keybinds.conf
+clear
+nvim ../hypr/hyprland/keybinds.conf
+clear
+ls
+git branch
+ls -a
+rm -rf .git
+ls
+clear
+git remote add origin https://github.com/AschereVerhen/NuDots.git
+git branch -M main
+git init
+git branch -M main
+git push -u origin main
+git remote add origin https://github.com/AschereVerhen/NuDots.git
+git push -u origin main
+git push -u origin master
+clear
+git init
