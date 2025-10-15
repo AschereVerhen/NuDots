@@ -157,3 +157,175 @@ git push -u origin main
 git pull
 clear
 ls
+git add .
+ls
+git commit -m "Initial commit of existing project files"
+git push -u origin main
+git pull origin main
+git config --global pull.rebase false
+clear
+git push -u origin main
+git push
+git push --set-upstream origin main
+git pull origin main
+git push --set-upstream origin main
+git pull origin main --allow-unrelated-histories
+pacman -S vi
+sudo pacman -S vi
+clear
+git pull origin main --allow-unrelated-histories
+git commit -m "Initial commit of existing project files"
+git push --set-upstream origin main
+clear
+ls
+nvim env.nu
+clear
+ls
+nvim config.nu
+nvim ~/.config/nvim/init.lua
+mkdir ~/.config/nvim/
+nvim ~/.config/nvim/init.lua
+clear
+mkdir -- ~/.config/nvim/lua/plugins/config
+mkdir ~/.config/nvim/lua/plugins/config
+clear
+nvim ~/.config/nvim/lua/plugins/config/lazy.lua
+cd Pictures/Wallpapes
+cd Pictures/Wallpapers
+pywal -tqi /home/aschere/Pictures/Wallpapers/f135019952.png
+wal -tqi /home/aschere/Pictures/Wallpapers/f135019952.png
+paru -S pywal16
+paru -S pywal-git
+wal -tqi /home/aschere/Pictures/Wallpapers/f135019952.png
+cd ~/.cache
+ls
+cd wal
+ls
+nvim
+nvim ~/.config/nvim/lua/plugins/plugins/colors.lua
+nvim ~/.config/nvim/lua/plugins/colors.lua
+clear
+nvim ~/.config/nvim/init.lua
+nvim
+nvim ~/.config/nvim/init.lua
+nvim
+tree
+sudo pacman -S tree
+clear
+tree
+tree ~/.config/nvim
+nvim ~/.config/nvim/plugins/colors.lua
+nvim ~/.config/nvim/lua/plugins/colors.lua
+clear
+nvim ~/.config/nvim/init.lua
+nvim
+nvim ~/.config/nvim/init.lua
+nvim
+nvim ~/.config/nvim/init.lua
+clear
+ls
+git clone https://github.com/LazyVim/starter ~/.config/nvim
+rm -rf /home/aschere/.config/nvim
+git clone https://github.com/LazyVim/starter ~/.config/nvim
+cd .config/nvim
+ls
+nvim lua/config/lazy.lua
+nvim init.lua
+clar
+nvim lua/config/lazy.lua
+clear
+nvim
+nvim init.lua
+nvim
+nvim ~/.config/nvim/lua/my_colors.lua
+nvim init.lua
+clear
+nvim
+nvim init.lua
+clea
+clear
+nvim
+nvim lua/my_colors.lua
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+clear
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+clear
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+nvim init.lua
+ls
+nvim ~/.config/nvim/init.lua
+nvim ~/.config/nvim/lua/config/lazy.lua
+clear
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+clea
+clear
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+clear
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+nvim
+nvim ~/.config/nvim/lua/config/lazy.lua
+nvim  ~/.config/nvim/init.lua
+pywal -tqi /home/aschere/Pictures/Wallpapers/f135001504.png
+wal -tqi /home/aschere/Pictures/Wallpapers/f135001504.png
+nvim
+sudo pacman -S npm
+nvim
+clear
+poweroff
+wal -tqi /home/aschere/Pictures/Wallpapers/f135001504.png
+clear
+cd .config/quickshell
+ls
+cd ii/scripts
+ls
+cd colors
+ls
+nvim switchwall.sh
+clear
+cd .config/nushell
+ls
+cd ~/.config/nushell
+clea
+rls
+clear
+ls
+paru -S opentabletdriver-git rnote
+paru -S opentabletdriver-git rnote & disown
+paru -S opentabletdriver-git rnote | disown
+paru -S opentabletdriver-git rnote
+sudo rm -rf /var/lib/pacman/db.lck
+clear
+cd Downloads
+ls
+nvim config.nu
+clear
+ls
+mkdir functions

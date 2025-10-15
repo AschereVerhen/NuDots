@@ -16,3 +16,6 @@
 #
 # You can remove these comments if you want or leave
 # them for future reference.
+
+##Environment Variables
+$env.config.buffer_editor = "nvim" ##Nushell's version of $EDITOR; replace nvim with any editor you want!
