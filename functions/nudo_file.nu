@@ -4,7 +4,7 @@
 const functions_dir = ("~/.config/nushell/functions" | path expand)
 use ($functions_dir | path join "editsu.nu") * ##Import editsu. MAKE SURE THIS ISNT IN MOD.NU!!!!
 use ($functions_dir | path join "gpu-mode.nu") *
-use ($functions_dir | path join "pacman_wrapper.nu") *
+use ($functions_dir | path join "pkg_manager.nu") *
 use ($functions_dir | path join "bluecon.nu") *
 export def nudo [function: string, ...args: string] {
 
@@ -31,7 +31,7 @@ export def nudo [function: string, ...args: string] {
 			update $args	
 		}
 		"connect" => {
-			blueconnect ($args | get 0)
+			blueconnect 
 		}
 		_ => {
 			print -e "Function does not exists or is not imported."
