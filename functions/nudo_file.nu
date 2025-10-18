@@ -29,6 +29,9 @@ export def nudo [function: string, ...args: string] {
 		},
 		"update" => {
 			update $args	
+		},
+		"search" => {
+			search ($args | get 0)
 		}
 		"connect" => {
 			blueconnect 

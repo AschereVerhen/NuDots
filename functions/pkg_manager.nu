@@ -86,10 +86,10 @@ export def search [SearchTerm: string] {
 	}
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
-			^$command -Ss ...$SearchTerm
+			^$command -Ss $SearchTerm
 		},
 		"emerge" => {
-			^$command --search ...$SearchTerm
+			^$command --search $SearchTerm
 		}
 	}
 }
