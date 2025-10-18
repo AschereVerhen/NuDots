@@ -35,8 +35,12 @@ export def blueconnect [search_term: string = ""] {
 			|it| echo $it
 		} | str join "\n"
 		| fzf --height 20 --prompt "Choose a device: ")
-		let ssid = ($list_of_devices | find $user_select | get ssid | get 0)
-		run bluetoothctl connect $ssid
+		if not ($user_select | is-empty) {
+			let ssid = ($list_of_devices | find $user_select | get ssid | get 0)
+			run bluetoothctl connect $ssid
+		}
+	} else if (($name_table | length) == 0) {
+		return 1
 	} else {
 		let ssid = ($list_of_devices | find $search_term | get ssid | get 0)
 		run bluetoothctl connect $ssid
