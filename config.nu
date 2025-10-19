@@ -1,8 +1,7 @@
 ###Sourcing Functions###
-let presconf = "~/.local/share/nushell"
-let PERSISTENT_CONFIG = ($presconf | path expand) 
-if not ($PERSISTENT_CONFIG | path exists) {
-    mkdir $PERSISTENT_CONFIG
+$env.PERSISTENT_CONFIG = ("~/.local/share/nushell" | path expand) 
+if not ($env.PERSISTENT_CONFIG | path exists) {
+    mkdir $env.PERSISTENT_CONFIG
 }
 const functions_path = ($nu.config-path | path dirname | path join "functions")
 if not ($functions_path | path exists) {
@@ -34,21 +33,21 @@ $env.PROMPT_INDICATOR_VI = {|| " " }
 ###Pywal Colors###
 let colors = ( 
     try {
-        PERSISTENT_CONFIG | path join "colors" | open | str trim
+        $env.PERSISTENT_CONFIG | path join "colors" | open | str trim | into bool
     } catch {
         true
     }
 )
 # Define the file path string first.
 if ($colors) {
-	let wallpath = ( $"~/Pictures/Wallpapers/.current_wallpaper" | path expand )
-	wal -tqi $wallpath | ignore
+	let wallpath = ( "~/Pictures/Wallpapers/.current_wallpaper" | path expand )
+	wal -tqi /home/aschere/Pictures/Wallpapers/.current_wallpaper | ignore
 }
 ###End of section###
 
 
 ###AutoStarts###
-#start_wm hyprland <--Not implimented yet.
+wm hyprland
 fastfetch --config examples/10
 ###End Of section###
 

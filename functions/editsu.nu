@@ -4,7 +4,7 @@
  export def edit [path_list: list<string>] {
 	#preferred way	<--------	      Posix Way<---------
 	#			|				|
-	let editor_found = ([($env.config.buffer_editor), ($env.EDITOR)]
+	let editor_found = ([($env.config.buffer_editor?), ($env.EDITOR?)]
 		| where {|it| not ($it | is-empty)}
 		| first
 	)

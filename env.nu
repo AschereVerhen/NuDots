@@ -19,3 +19,4 @@
 
 ##Environment Variables
 $env.config.buffer_editor = "nvim" ##Nushell's version of $EDITOR; replace nvim with any editor you want!
+$env.EDITOR = $"($env.config.buffer_editor)"
