@@ -34,7 +34,7 @@ export def nudo [function: string, ...args: string] {
 			search ($args | get 0)
 		}
 		"connect" => {
-			blueconnect 
+			blueconnect (if not ($args | is-empty) { $args | get 0 })
 		}
 		_ => {
 			print -e "Function does not exists or is not imported."
