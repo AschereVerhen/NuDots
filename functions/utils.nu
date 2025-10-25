@@ -5,11 +5,8 @@
 
 
 export def dependency_check [...programs: string] {
-	let not_there = ($programs | each {
-		|it|
-		if (which $it | is-empty) {
-			echo $it
-		}
+	let not_there = ($programs | where { |package| 
+		(which $package | is-empty)
 	})
 	if not ($not_there | is-empty) {
 		error make {
@@ -18,6 +15,21 @@ export def dependency_check [...programs: string] {
 		}
 	} else {
 		return 0
+	}
+}
+
+export def any_one_of [...programs: string] {
+	let there = ($programs | where {
+		|package|
+		(which $package | is-not-empty)
+	});
+	if ($there | is-empty) {
+		error make {
+			msg: $"None of the programs: ($programs | str join ', ') were installed.",
+			exit_code: 1
+		}
+	} else {
+		return ($there | get 0)
 	}
 }
 
