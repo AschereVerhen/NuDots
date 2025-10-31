@@ -45,13 +45,14 @@ export def clean [] {
 		_ => $pkg_manager
 	}
 	match $pkg_manager {
-		"paru" | "yay" | "pacman" => {sudo rm -rf /var/cache/pacman/pkg
+		"paru" | "yay" | "pacman" => {
 			sudo rm -rf ($env.HOME | path join .cache/paru)
 			sudo rm -rf ($env.HOME | path join .cache/yay)
 			sudo pacman -Scc --noconfirm | ignore
+			pacman -Qdtq | parse "{name}" | each {|it| ^$pkg_manager -Rns --noconfirm $it} | ignore
 		},
 		"emerge" => {
-			sudo emerge --depclean
+			^$command --depclean
 		}
 	}
 }

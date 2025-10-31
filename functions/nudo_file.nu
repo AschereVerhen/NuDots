@@ -6,7 +6,7 @@ use ($functions_dir | path join "editsu.nu") * ##Import editsu. MAKE SURE THIS I
 use ($functions_dir | path join "gpu-mode.nu") *
 use ($functions_dir | path join "pkg_manager.nu") *
 use ($functions_dir | path join "bluecon.nu") *
-export def nudo [function: string, ...args: string] {
+export def --wrapped nudo [function: string, ...args: string] {
 
 	match $function  {
 		"edit" => {
@@ -28,7 +28,7 @@ export def nudo [function: string, ...args: string] {
 			clean
 		},
 		"update" => {
-			update $args	
+			update $args
 		},
 		"search" => {
 			search ($args | get 0)
