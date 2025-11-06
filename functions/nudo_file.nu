@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
 ##Define which functions nudo can access:
-const functions_dir = ("~/.config/nushell/functions" | path expand)
+const functions_dir = ($nu.config-path | path dirname | path join "functions" | path expand)
 use ($functions_dir | path join "editsu.nu") * ##Import editsu. MAKE SURE THIS ISNT IN MOD.NU!!!!
 use ($functions_dir | path join "gpu-mode.nu") *
 use ($functions_dir | path join "pkg_manager.nu") *
@@ -25,6 +25,24 @@ def help_command [] {
     print ""
 }
 
+def detect_os [desired: string = ""] {
+	##First check if the system is running any type of linux system.
+	mut os = "linux"
+	if ("/etc" | path exists) {
+		if not ("linux" in (open /etc/os-release) or "Linux" in (open /etc/os-release)) {
+			$os = "unix"
+		}
+	} else {
+	$os = "windows"
+	}
+
+	if not (($desired | str downcase) in $os) {
+		error make {
+			msg: $"(ansi red) Required Os was ($desired) but found ($os)",
+			error_code: 1
+		}
+	}
+}
 
 export def --wrapped nudo [function: string, ...args: string] {
 
@@ -35,9 +53,11 @@ export def --wrapped nudo [function: string, ...args: string] {
 
 	match $function  {
 		"edit" => {
+			detect_os linux
 			edit $args
 		}, 
 		"set-mode" => {
+			detect_os linux
 			mode-set ($args | get 0)
 		},
 		"install" => {
@@ -47,9 +67,7 @@ export def --wrapped nudo [function: string, ...args: string] {
 			remove $args
 		},
 		"clean" => {
-			if not ($args | is-empty) {
-				print -e "Warning: clean does not take any arguments. ignoring: " $args
-			}
+			detect_os linux
 			clean
 		},
 		"update" => {
@@ -59,6 +77,7 @@ export def --wrapped nudo [function: string, ...args: string] {
 			search ($args | get 0)
 		}
 		"connect" => {
+			detect_os linux
 			blueconnect (if not ($args | is-empty) { $args | get 0 })
 		}
 		_ => {

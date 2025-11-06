@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
 def figure_out_pkg_manager [] {
-	(["paru", "yay", "pacman", "emerge"]
+	(["paru", "yay", "pacman", "emerge", "winget"]
 		| where { |it| not (which $it | is-empty)}
 		| first
 	)
@@ -18,7 +18,8 @@ export def install [package: list<string>] {
 		},
 		"emerge" => { 
 			^$command -qv ...$package 
-		}
+		},
+		"winget" => { ^$pkg_manager install ...$package --source winget --accept-package-agreements }
 	}
 }
 
@@ -34,7 +35,8 @@ export def remove [package: list<string>] {
 		},
 		"emerge" => {
 			^$command -C ...$package		
-		}
+		},
+		"winget" => { ^$pkg_manager uninstall ...$package --source winget --accept-package-agreements }
 	}
 }
 
@@ -69,7 +71,8 @@ export def update [optional_packages: list<string> = [""]] {
 		},
 		"emerge" => {
 			^$command -qvuDN @world ...$optional_packages
-		}
+		},
+		"winget" => { ^$pkg_manager update --all --source winget --accept-package-agreements }
 	}
 }
 
@@ -92,6 +95,7 @@ export def search [SearchTerm: string] {
 		"emerge" => {
 			^$command --search $SearchTerm
 		}
+		"winget" => { ^$pkg_manager search $SearchTerm --source winget --accept-package-agreements }
 	}
 }
 
