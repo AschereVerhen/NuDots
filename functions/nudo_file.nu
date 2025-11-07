@@ -6,6 +6,7 @@ use ($functions_dir | path join "editsu.nu") * ##Import editsu. MAKE SURE THIS I
 use ($functions_dir | path join "gpu-mode.nu") *
 use ($functions_dir | path join "pkg_manager.nu") *
 use ($functions_dir | path join "bluecon.nu") *
+use ($functions_dir | path join "settings.nu") *
 
 def help_command [] {
     print ""
@@ -22,6 +23,8 @@ def help_command [] {
     print $"  (ansi green)search <query>(ansi reset) ......... (ansi purple)Search for available packages.(ansi reset)"
     print $"  (ansi green)clean(ansi reset) .................. (ansi purple)Clean package manager caches.(ansi reset)"
     print $"  (ansi green)connect [device](ansi reset) ....... (ansi purple)Connects to a specified Bluetooth device.(ansi reset)"
+    print $"  (ansi green)set <env/toggle>(ansi reset) ...... (ansi purple)Be able to set a specific toggle or set a new environmental variable(ansi reset)"
+    print $"  (ansi green)get <envs/toggles>(ansi reset) ....... (ansi purple)Be able to get the current value of all settings or environmental variables declared..(ansi reset)"
     print ""
 }
 
@@ -44,7 +47,7 @@ def detect_os [desired: string = ""] {
 	}
 }
 
-export def --wrapped nudo [function: string, ...args: string] {
+export def --env --wrapped nudo [function: string, ...args: string] {
 
 	if ($function =~ "-h") { #This covers also -*-h*elp, and -h!
 		help_command
@@ -79,9 +82,26 @@ export def --wrapped nudo [function: string, ...args: string] {
 		"connect" => {
 			detect_os linux
 			blueconnect (if not ($args | is-empty) { $args | get 0 })
-		}
+		},
+		"set" => {
+			match ($args | get -o 0) {
+				"env" => { set-env ($args | get 1) ($args | get 2) },
+				"toggle" => { set-toggle ($args | get 1) ($args | get 2) },
+				_ => get_help
+			}
+		},
+		"get" => {
+			match ($args | get -o 0) {
+				"env" => { get-env },
+				"toggle" => { get-toggle},
+				_ => get_help
+			}
+		},
+
+
 		_ => {
 			print -e "Function does not exists or is not imported."
 		}
 	}
 };
+

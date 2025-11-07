@@ -1,5 +1,6 @@
 ###Sourcing Functions###
-$env.PERSISTENT_CONFIG = ("~/.local/share/nushell" | path expand) 
+$env.PERSISTENT_CONFIG = ("~/.local/share/nushell" | path expand)
+$env.PERSISTENT_TOGGLES = ($env.PERSISTENT_CONFIG | path join "toggles" | open | parse "{toggle}: {value}")
 if not ($env.PERSISTENT_CONFIG | path exists) {
     mkdir $env.PERSISTENT_CONFIG
 }
@@ -33,9 +34,10 @@ $env.PROMPT_INDICATOR_VI = {|| " " }
 ###Pywal Colors###
 let colors = ( 
     try {
-        $env.PERSISTENT_CONFIG | path join "colors" | open | str trim | into bool
+        $env.PERSISTENT_TOGGLES | find "colors" | get value | get 0 | str trim | into bool
     } catch {
-        true
+        # true
+	false
     }
 )
 # Define the file path string first.
