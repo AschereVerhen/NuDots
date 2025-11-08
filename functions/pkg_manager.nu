@@ -1,10 +1,21 @@
 #!/usr/bin/env nu
 
+const utils_file = ($nu.default-config-dir | path join "functions/utils.nu")
+use $utils_file *
+
 def figure_out_pkg_manager [] {
-	(["paru", "yay", "pacman", "emerge", "winget"]
-		| where { |it| not (which $it | is-empty)}
-		| first
-	)
+	# let value_captured = (["paru", "yay", "pacman", "emerge", "winget", "null"]
+	# 	| where { |it| not (which $it | is-empty)}
+	# 	| first
+	# )
+	# if ($value_captured == "null") {
+	# 	error make {
+	# 		msg: $"(ansi red)Error! No package manager found. this function is only supported for arch and gentoo for now.",
+	# 		error_code: 1,
+	# 	}
+	# }
+	# $value_captured
+	any_one_of paru yay pacman emerge winget
 }
 export def install [package: list<string>] {
 	let pkg_manager = (figure_out_pkg_manager)
@@ -14,12 +25,12 @@ export def install [package: list<string>] {
 	}
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => { 
-			^$command -S --noconfirm --color=always ...$package 
+			run $command -S --noconfirm --color=always ...$package 
 		},
 		"emerge" => { 
-			^$command -qv ...$package 
+			run $command -qv ...$package 
 		},
-		"winget" => { ^$pkg_manager install ...$package --source winget --accept-package-agreements }
+		"winget" => { run $pkg_manager install ...$package --source winget --accept-package-agreements }
 	}
 }
 
@@ -31,12 +42,12 @@ export def remove [package: list<string>] {
 	}
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
-			^$command -Rns --noconfirm ...$package
+			run $command -Rns --noconfirm ...$package
 		},
 		"emerge" => {
-			^$command -C ...$package		
+			run $command -C ...$package		
 		},
-		"winget" => { ^$pkg_manager uninstall ...$package --source winget --accept-package-agreements }
+		"winget" => { run $pkg_manager uninstall ...$package --source winget --accept-package-agreements }
 	}
 }
 
@@ -48,13 +59,15 @@ export def clean [] {
 	}
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
-			sudo rm -rf ($env.HOME | path join .cache/paru)
-			sudo rm -rf ($env.HOME | path join .cache/yay)
-			sudo pacman -Scc --noconfirm | ignore
-			pacman -Qdtq | parse "{name}" | each {|it| ^$pkg_manager -Rns --noconfirm $it} | ignore
+			run sudo rm -rf ($env.HOME | path join .cache/paru)
+			run sudo rm -rf ($env.HOME | path join .cache/yay)
+			run sudo pacman -Scc --noconfirm
+			##Removing orphaned package
+			job spawn { pacman -Qdtq | parse "{name}" | each {|it| ^$pkg_manager -Rns --noconfirm $it.name} }
+			print $"(ansi green)Removing Orphaned packages in the background..."
 		},
 		"emerge" => {
-			^$command --depclean
+			run $command --depclean
 		}
 	}
 }
@@ -67,12 +80,12 @@ export def update [optional_packages: list<string> = [""]] {
 	}
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
-			^$command -Syu --noconfirm ...$optional_packages
+			run $command -Syu --noconfirm ...$optional_packages
 		},
 		"emerge" => {
-			^$command -qvuDN @world ...$optional_packages
+			run $command -qvuDN @world ...$optional_packages
 		},
-		"winget" => { ^$pkg_manager update --all --source winget --accept-package-agreements }
+		"winget" => { run $pkg_manager update --all --source winget --accept-package-agreements }
 	}
 }
 
@@ -90,12 +103,12 @@ export def search [SearchTerm: string] {
 	}
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
-			^$command -Ss $SearchTerm
+			run ^$command -Ss $SearchTerm
 		},
 		"emerge" => {
-			^$command --search $SearchTerm
+			run ^$command --search $SearchTerm
 		}
-		"winget" => { ^$pkg_manager search $SearchTerm --source winget --accept-package-agreements }
+		"winget" => { run ^$pkg_manager search $SearchTerm --source winget --accept-package-agreements }
 	}
 }
 

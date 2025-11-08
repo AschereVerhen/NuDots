@@ -1,11 +1,10 @@
 #!/usr/bin/env nu
 
+use ($nu.config-path | path dirname | path join "functions/utils.nu") dependency_check
 
 export def mode-set [mode: string] {
-	if (which nvidia-smi | is-empty) {
-		print "nvidia-smi Does not exit. Please install it."
-		exit 1
-	}
+	
+	dependency_check "nvidia-smi"
 
 	let NVIDIA_ARGS = match ($mode | str downcase) {
 		"powersave" | "p" => {
@@ -18,7 +17,10 @@ export def mode-set [mode: string] {
 			"-lgc 1950,1950"
 		},
 		_ => {
-			exit 0
+			error make {
+				msg: $"Option: ($mode) not found.",
+				exit_code: 1
+			}
 		},
 	}
 

@@ -4,16 +4,19 @@
 use ($nu.config-path | path dirname | path join "functions" | path join utils.nu) *
 
 def get_devices [] {
-	loop {
-		let list_of_devices = (bluetoothctl devices | split row "\n" | split column -n 3 " " useless ssid name | reject useless)
-		if ($list_of_devices | get 0 | is-empty) {
-			bluetoothctl scan on | ignore
-			print "No bluetooth devices found. Sleeping for 10 seconds"
-			sleep 10sec
-		} else {
-			return $list_of_devices
-		}
-	}
+	mut counter = 1
+	while (^bluetoothctl devices | is-empty) and ($counter != 10) {
+		print -e $"Error: No devices found during searching phase. Waiting for 10 seconds and trying again\(Tries: ($counter)/10\)"
+		sleep 10sec
+		##Ensure once more
+		run bluetoothctl power on
+		run bluetoothctl scan on
+		$counter += 1
+	} ##The escape condition will only be true if ^bluetoothctl devices | is-empty returned false
+
+	let list_of_devices = (bluetoothctl devices | split row "\n" | parse "Device {mac} {name}")
+
+	return $list_of_devices
 }
 
 export def blueconnect [search_term: string = ""] {
@@ -37,12 +40,12 @@ export def blueconnect [search_term: string = ""] {
 		let user_select = ($name_table | str join "\n"
 		| fzf --height 20 --prompt "Choose a device: ")
 		if not ($user_select | is-empty) {
-			let ssid = ($list_of_devices | find $user_select | get ssid | get 0)
-			run bluetoothctl connect $ssid
+			let mac = ($list_of_devices | find $user_select | get mac | get 0)
+			run bluetoothctl connect $mac
 		}
 	} else if (($name_table | length) == 1) {
-		let ssid = ($list_of_devices | get ssid | get 0)
-		run bluetoothctl connect $ssid
+		let mac = ($list_of_devices | find ($name_table | get 0) | get mac | get 0)
+		run bluetoothctl connect $mac
 	} else {
 		print "unhandleded Error occured."
 	}
