@@ -41,15 +41,23 @@ let colors = (
     }
 )
 # Define the file path string first.
-if ($colors) {
-	let wallpath = ( "~/Pictures/Wallpapers/.current_wallpaper" | path expand )
-	wal -tqi /home/aschere/Pictures/Wallpapers/.current_wallpaper | ignore
+if ($colors and (which wal | is-not-empty)) {
+	let user_wall_path = $env.PERSISTENT_TOGGLES | find "wallpath" | get value? | get 0?
+	let wallpath = ( $user_wall_path | default --empty ( "~/Pictures/Wallpapers/.current_wallpaper" | path expand ))
+	job spawn { ^setsid wal -tqi $wallpath | ignore } #dark magic. Basically we are using setsid which says to wall "run.", but it runs not in our tty. hence it cannot output anything to us. usefull for suppressing kitty's @kitty{"ok": true} json blob.
+	notify-send --app-name="Pywal" --urgency=normal "Generating a color scheme..." "Please wait, pywal is generating a color scheme from the terminal..."
 }
 ###End of section###
 
 
 ###AutoStarts###
-wm hyprland
+try {
+	wm
+} catch {
+	if (open $nu.env-path | find wm | is-empty) {
+		print -e $"(ansi red)No window manager was selected. If you do not plan on using tty for login, please comment wm from autostart in config nu." $" else, please consider defining a wm using \"nudo set toggle wm <window manager>\".(ansi reset)"
+	}
+}
 fastfetch --config examples/10
 ###End Of section###
 

@@ -16,33 +16,32 @@ def help_command [] {
     print ""
     print "Available Commands:"
     print $"  (ansi green)edit <path>(ansi reset) ............ (ansi purple)Edit configuration files \(requires elevated privileges\).(ansi reset)"
-    print $"  (ansi green)set-mode <mode>(ansi reset) ........ (ansi purple)Set the system's GPU/performance mode.(ansi reset)"
-    print $"  (ansi green)install <package>(ansi reset) ...... (ansi purple)Install packages via the package manager.(ansi reset)"
-    print $"  (ansi green)remove <package>(ansi reset) ....... (ansi purple)Remove packages via the package manager.(ansi reset)"
-    print $"  (ansi green)update [package](ansi reset) ....... (ansi purple)Update all or specified packages.(ansi reset)"
+    print $"  (ansi green)install <packages>(ansi reset) ..... (ansi purple)Install packages via the package manager.(ansi reset)"
+    print $"  (ansi green)remove <packages>(ansi reset) ...... (ansi purple)Remove packages via the package manager.(ansi reset)"
+    print $"  (ansi green)update [packages](ansi reset) ...... (ansi purple)Update all or specified packages.(ansi reset)"
     print $"  (ansi green)search <query>(ansi reset) ......... (ansi purple)Search for available packages.(ansi reset)"
     print $"  (ansi green)clean(ansi reset) .................. (ansi purple)Clean package manager caches.(ansi reset)"
     print $"  (ansi green)connect [device](ansi reset) ....... (ansi purple)Connects to a specified Bluetooth device.(ansi reset)"
-    print $"  (ansi green)set <env/toggle>(ansi reset) ...... (ansi purple)Be able to set a specific toggle or set a new environmental variable(ansi reset)"
-    print $"  (ansi green)get <envs/toggles>(ansi reset) ....... (ansi purple)Be able to get the current value of all settings or environmental variables declared..(ansi reset)"
+    print $"  (ansi green)set <env/toggle> <value>(ansi reset) (ansi purple)Be able to set a specific toggle or set a new environmental variable(ansi reset)"
+    print $"  (ansi green)set mode <mode>(ansi reset) ........ (ansi purple)Set the system's GPU/performance mode.(ansi reset)"
+    print $"  (ansi green)get <envs/toggles>(ansi reset) ..... (ansi purple)Be able to get the current value of all settings or environmental variables declared..(ansi reset)"
+    print $"  (ansi green)remove <envs/toggles>(ansi reset) .. (ansi purple)Be able to remove a specific toggle or env by its name.(ansi reset)"
     print ""
 }
 
-def detect_os [desired: string = ""] {
+def detect_os [...allowed: string] {
 	##First check if the system is running any type of linux system.
-	mut os = "linux"
-	if ("/etc" | path exists) {
-		if not ("linux" in (open /etc/os-release) or "Linux" in (open /etc/os-release)) {
-			$os = "unix"
-		}
-	} else {
-	$os = "windows"
-	}
-
-	if not (($desired | str downcase) in $os) {
+	let os = ($nu.os-info.name)
+	if not ($os in $allowed) {
+		let span = (metadata $allowed).span
+		let prettified = if (($allowed | length) == 1) {$allowed | get 0} else {$allowed | str join ", or "}
 		error make {
-			msg: $"(ansi red) Required Os was ($desired) but found ($os)",
-			error_code: 1
+			msg: $"(ansi red)Invalid Platform. This function is not available for your platform."
+			label: {
+				text: $"Required: ($prettified), found: ($os)",
+				span: $span,
+			},
+			exit_code: 1,
 		}
 	}
 }
@@ -59,15 +58,15 @@ export def --env --wrapped nudo [function: string, ...args: string] {
 			detect_os linux
 			edit $args
 		}, 
-		"set-mode" => {
-			detect_os linux
-			mode-set ($args | get 0)
-		},
 		"install" => {
 			install $args
 		},
 		"remove" => {
-			remove $args
+			match ($args | get -o 0) {
+				"env" => { remove-env ($args | get 1?) },
+				"toggle" => { remove-toggle ($args | get 1?)},
+				_ => { remove $args }
+			}
 		},
 		"clean" => {
 			detect_os linux
@@ -87,6 +86,7 @@ export def --env --wrapped nudo [function: string, ...args: string] {
 			match ($args | get -o 0) {
 				"env" => { set-env ($args | get 1) ($args | get 2) },
 				"toggle" => { set-toggle ($args | get 1) ($args | get 2) },
+				"mode" => { mode-set ($args | get 1)}
 				_ => get_help
 			}
 		},
