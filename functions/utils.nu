@@ -35,18 +35,16 @@ export def any_one_of [...programs: string] {
 
 
 export def run --wrapped [...command: string] {
+	let span = (metadata $command).span
 	try {
 		^$command
 	} catch {|e|
-		print $e
 		let error_msg = $e.msg
-		let error_span = $e | get json | from json | get labels | get span | get 0
-		print $error_span
 		error make {
 			msg: $error_msg
 			label: {
 				text: $"(ansi red)Command: `($command | str join ' ')` failed.",
-				span: $error_span
+				span: $span
 			}
 			exit_code: $e.exit_code,
 		}

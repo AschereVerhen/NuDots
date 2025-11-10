@@ -17,6 +17,7 @@ def make_command [pkg_manager: string] {
 			$pkg_manager
 		}
 	}
+	return $command
 }
 
 export def install [package: list<string>] {
@@ -87,12 +88,12 @@ export def search [search_term: string] {
 	let command = make_command $pkg_manager
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
-			run ^$command -Ss $search_term
+			run $command -Ss $search_term
 		},
 		"emerge" => {
-			run ^$command --search $search_term
-		}
-		"winget" => { run ^$pkg_manager search $search_term --source winget}
+			run $command --search $search_term
+		},
+		"winget" => { run $pkg_manager search $search_term --source winget}
 	}
 }
 
