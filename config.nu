@@ -1,8 +1,12 @@
+###Setting Up Toggles File###
+if not ($nu.data-dir | path join "toggles" | path exists) {
+	"" | save -f ($nu.data-dir | path join "toggles")
+}
+
 ###Sourcing Functions###
-$env.PERSISTENT_CONFIG = ("~/.local/share/nushell" | path expand)
-$env.PERSISTENT_TOGGLES = ($env.PERSISTENT_CONFIG | path join "toggles" | open | parse "{toggle}: {value}")
-if not ($env.PERSISTENT_CONFIG | path exists) {
-    mkdir $env.PERSISTENT_CONFIG
+$env.PERSISTENT_TOGGLES = ($nu.data-dir | path join "toggles" | open | parse "{toggle}: {value}")
+if not ($nu.data-dir | path exists) {
+    mkdir $nu.data-dir
 }
 const functions_path = ($nu.config-path | path dirname | path join "functions")
 if not ($functions_path | path exists) {
@@ -41,7 +45,7 @@ let colors = (
     }
 )
 # Define the file path string first.
-if ($colors and (which wal | is-not-empty)) {
+if ($colors and (which wal | is-not-empty) and not ((tty) =~ "tty")) {
 	let user_wall_path = $env.PERSISTENT_TOGGLES | find "wallpath" | get value? | get 0?
 	let wallpath = ( $user_wall_path | default --empty ( "~/Pictures/Wallpapers/.current_wallpaper" | path expand ))
 	job spawn { ^setsid wal -tqi $wallpath | ignore } #dark magic. Basically we are using setsid which says to wall "run.", but it runs not in our tty. hence it cannot output anything to us. usefull for suppressing kitty's @kitty{"ok": true} json blob.

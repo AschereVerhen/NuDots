@@ -57,13 +57,13 @@ export def remove-env [env_name: string] {
 }
 
 export def get-toggle [] {
-	let save_file = ($env.PERSISTENT_CONFIG | path join "toggles")
+	let save_file = ($nu.data-dir | path join "toggles")
 	if not ($save_file | path exists) { "" | save -f $save_file}
 	open $save_file | parse "{toggle}: {value}" 
 }
 
 def write-toggle [toggles: list<any>] {
-	let save_file = ($env.PERSISTENT_CONFIG | path join "toggles")
+	let save_file = ($nu.data-dir | path join "toggles")
 	"" | save -f $save_file
 	$toggles | each {|vars| 
 		$"($vars.toggle): ($vars.value)\n" | save --append $save_file
@@ -71,7 +71,7 @@ def write-toggle [toggles: list<any>] {
 }
 
 export def set-toggle [toggle: string, value: string] {
-	let save_file = ($env.PERSISTENT_CONFIG | path join "toggles")
+	let save_file = ($nu.data-dir | path join "toggles")
 	
 	if ($toggle in (get-toggle | get toggle)) {
 		let new_table = (
