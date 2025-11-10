@@ -52,3 +52,36 @@ export def run --wrapped [...command: string] {
 		}
 	}
 }
+export def detect_os [...allowed: string] {
+	##First check if the system is running any type of linux system.
+	let os = ($nu.os-info.name)
+	if not ($os in $allowed) {
+		let span = (metadata $allowed).span
+		let prettified = if (($allowed | length) == 1) {$allowed | get 0} else {$allowed | str join ", or "}
+		error make {
+			msg: $"(ansi red)Invalid Platform. This function is not available for your platform."
+			label: {
+				text: $"Required: ($prettified), found: ($os)",
+				span: $span,
+			},
+			exit_code: 1,
+		}
+	}
+}
+
+export def args_required [args_list: list<string>, args_atleast: int] {
+	let total_args = ($args_list | length)
+	if ($total_args < $args_atleast) {
+		let span = (metadata $total_args).span
+		error make {
+			msg: "Not Enough arguments supplied.",
+			label: {
+				text: $"Required args: ($args_atleast), got: ($total_args)",
+				span: $span
+			},
+			return_code: 1
+		}
+	}
+}
+
+

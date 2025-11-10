@@ -1,10 +1,12 @@
 #!/usr/bin/env nu
 const settings_file = ($nu.default-config-dir | path join "functions/settings.nu")
-use $settings_file set-toggle
+use $settings_file get-toggle
+use ($nu.default-config-dir | path join "functions/utils.nu") detect_os
 
-export def wm [arg: string = "hyprland", ...optional_args: string] {
-	if ($arg == "hyprland" and ($env.XDG_CURRENT_DESKTOP? | is-empty)) {
-		set-toggle colors "true"
-		hyprland
+export def wm [] {
+	detect_os linux bsd
+	if ($env.XDG_CURRENT_DESKTOP? | is-empty) {
+		let window_manager = (get-toggles | find wm | get value? | get 0?)
+		^$window_manager | save -f ($nu.cache-dir | path join "WindowManager.log")
 	}
 }

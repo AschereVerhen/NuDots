@@ -17,7 +17,6 @@ if not ($functions_path | path join "mod.nu" | path exists) {
     touch ($functions_path | path join "mod.nu")
 }
 use $functions_path *
-
 ###End of function section###
 
 
@@ -55,11 +54,13 @@ if ($colors and (which wal | is-not-empty) and not ((tty) =~ "tty")) {
 
 
 ###AutoStarts###
-try {
-	wm
-} catch {
-	if (open $nu.env-path | find wm | is-empty) {
-		print -e $"(ansi red)No window manager was selected. If you do not plan on using tty for login, please comment wm from autostart in config nu." $" else, please consider defining a wm using \"nudo set toggle wm <window manager>\".(ansi reset)"
+if ($nu.os-info.name == "linux" or $nu.os-info.name == "bsd") {
+	try {
+		wm
+	} catch {
+		if (open $nu.env-path | find wm | is-empty) {
+			print -e $"(ansi red)No window manager was selected. If you do not plan on using tty for login, please comment wm from autostart in config nu." $" else, please consider defining a wm using \"nudo set toggle wm <window manager>\".(ansi reset)"
+		}
 	}
 }
 fastfetch --config examples/10

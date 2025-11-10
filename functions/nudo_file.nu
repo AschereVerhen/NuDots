@@ -7,7 +7,7 @@ use ($functions_dir | path join "gpu-mode.nu") *
 use ($functions_dir | path join "pkg_manager.nu") *
 use ($functions_dir | path join "bluecon.nu") *
 use ($functions_dir | path join "settings.nu") *
-
+use ($functions_dir | path join "utils.nu") *
 def help_command [] {
     print ""
     print $"(ansi blue)nudo - Administrative helper command for system tasks.(ansi reset)"
@@ -27,38 +27,6 @@ def help_command [] {
     print $"  (ansi green)get <envs/toggles>(ansi reset) ..... (ansi purple)Be able to get the current value of all settings or environmental variables declared..(ansi reset)"
     print $"  (ansi green)remove <envs/toggles>(ansi reset) .. (ansi purple)Be able to remove a specific toggle or env by its name.(ansi reset)"
     print ""
-}
-
-def detect_os [...allowed: string] {
-	##First check if the system is running any type of linux system.
-	let os = ($nu.os-info.name)
-	if not ($os in $allowed) {
-		let span = (metadata $allowed).span
-		let prettified = if (($allowed | length) == 1) {$allowed | get 0} else {$allowed | str join ", or "}
-		error make {
-			msg: $"(ansi red)Invalid Platform. This function is not available for your platform."
-			label: {
-				text: $"Required: ($prettified), found: ($os)",
-				span: $span,
-			},
-			exit_code: 1,
-		}
-	}
-}
-
-def args_required [args_list: list<string>, args_atleast: int] {
-	let total_args = ($args_list | length)
-	if ($total_args < $args_atleast) {
-		let span = (metadata $total_args).span
-		error make {
-			msg: "Not Enough arguments supplied.",
-			label: {
-				text: $"Required args: ($args_atleast), got: ($total_args)",
-				span: $span
-			},
-			return_code: 1
-		}
-	}
 }
 
 export def --env --wrapped nudo [function: string, ...args: string] {
