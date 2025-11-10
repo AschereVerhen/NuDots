@@ -1,33 +1,35 @@
 #!/usr/bin/env nu
 
 
-use ($nu.config-path | path dirname | path join "functions" | path join utils.nu) *
+use ($nu.default-config-path | path join "functions/utils.nu") *
 
 def get_devices [] {
 	mut counter = 1
 	while (^bluetoothctl devices | is-empty) and ($counter != 10) {
-		print -e $"Error: No devices found during searching phase. Waiting for 10 seconds and trying again\(Tries: ($counter)/10\)"
+		print -e $"(ansi red)Error: No devices found during searching phase. Waiting for 10 seconds and trying again\(Tries: ($counter)/10\)"
 		sleep 10sec
 		##Ensure once more
 		run bluetoothctl power on
 		run bluetoothctl scan on
 		$counter += 1
 	} ##The escape condition will only be true if ^bluetoothctl devices | is-empty returned false
-
-	let list_of_devices = (bluetoothctl devices | split row "\n" | parse "Device {mac} {name}")
-
-	return $list_of_devices
+	if ($counter <= 10) {
+		let list_of_devices = (bluetoothctl devices | split row "\n" | parse "Device {mac} {name}")
+		return $list_of_devices
+	}
+	error make {
+		msg: "Bluetooth scan time out.",
+		label: {
+			text: "No Devices were found.",
+		},
+		error_code: 1
+	}
 }
 
 export def blueconnect [search_term: string = ""] {
 	##Dependencies check
 	dependency_check bluetoothctl fzf
 	##Dependency check over
-
-	##Ensuring bluetoothctl is up and running...
-	run bluetoothctl power on
-	run bluetoothctl scan on
-	##Exit early if any of the commands failed.
 
 	let list_of_devices = (get_devices)
 	mut name_table = []
@@ -47,6 +49,13 @@ export def blueconnect [search_term: string = ""] {
 		let mac = ($list_of_devices | find ($name_table | get 0) | get mac | get 0)
 		run bluetoothctl connect $mac
 	} else {
-		print "unhandleded Error occured."
+		error make {
+			msg: $"(ansi red)Unknown Error Occured.",
+			label: {
+				text: $"Here, Name Table is empty. Maybe there are no devices near you?",
+				span: (metadata $name_table).span
+			},
+			exit_code: 255
+		}
 	}
 }

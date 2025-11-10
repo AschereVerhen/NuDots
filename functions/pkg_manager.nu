@@ -4,25 +4,24 @@ const utils_file = ($nu.default-config-dir | path join "functions/utils.nu")
 use $utils_file *
 
 def figure_out_pkg_manager [] {
-	# let value_captured = (["paru", "yay", "pacman", "emerge", "winget", "null"]
-	# 	| where { |it| not (which $it | is-empty)}
-	# 	| first
-	# )
-	# if ($value_captured == "null") {
-	# 	error make {
-	# 		msg: $"(ansi red)Error! No package manager found. this function is only supported for arch and gentoo for now.",
-	# 		error_code: 1,
-	# 	}
-	# }
-	# $value_captured
 	any_one_of paru yay pacman emerge winget
 }
+
+def make_command [pkg_manager: string] {
+	let priv_cmd = any_one_of sudo doas run0
+	let command = match $pkg_manager {
+		"pacman" | "emerge" => {
+			$"($priv_cmd) ($pkg_manager)"
+		},
+		_ => {
+			$pkg_manager
+		}
+	}
+}
+
 export def install [package: list<string>] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let command = match $pkg_manager {
-		"pacman" | "emerge" => $"sudo ($pkg_manager)",
-		_ => $pkg_manager
-	}
+	let command = make_command $pkg_manager
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => { 
 			run $command -S --noconfirm --color=always ...$package 
@@ -36,10 +35,7 @@ export def install [package: list<string>] {
 
 export def remove [package: list<string>] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let command = match $pkg_manager {
-		"pacman" | "emerge" => $"sudo ($pkg_manager)",
-		_ => $pkg_manager
-	}
+	let command = make_command $pkg_manager
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
 			run $command -Rns --noconfirm ...$package
@@ -47,16 +43,13 @@ export def remove [package: list<string>] {
 		"emerge" => {
 			run $command -C ...$package		
 		},
-		"winget" => { run $pkg_manager uninstall ...$package --source winget --accept-package-agreements }
+		"winget" => { run $pkg_manager uninstall ...$package --source winget }
 	}
 }
 
 export def clean [] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let command = match $pkg_manager {
-		"pacman" | "emerge" => $"sudo ($pkg_manager)",
-		_ => $pkg_manager
-	}
+	let command = make_command $pkg_manager
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
 			run sudo rm -rf ($env.HOME | path join .cache/paru)
@@ -74,10 +67,8 @@ export def clean [] {
 
 export def update [optional_packages: list<string> = [""]] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let command = match $pkg_manager {
-		"pacman" | "emerge" => $"sudo ($pkg_manager)",
-		_ => $pkg_manager
-	}
+	
+	let command = make_command $pkg_manager
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
 			run $command -Syu --noconfirm ...$optional_packages
@@ -91,24 +82,17 @@ export def update [optional_packages: list<string> = [""]] {
 
 
 
-export def search [SearchTerm: string] {
-	let pkg_manager = (figure_out_pkg_manager) 
-	let command = match $pkg_manager {
-		"pacman" | "emerge" => {
-			$"sudo ($pkg_manager)"
-		},
-		_ => {
-			$pkg_manager
-		}
-	}
+export def search [search_term: string] {
+	let pkg_manager = (figure_out_pkg_manager)
+	let command = make_command $pkg_manager
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
-			run ^$command -Ss $SearchTerm
+			run ^$command -Ss $search_term
 		},
 		"emerge" => {
-			run ^$command --search $SearchTerm
+			run ^$command --search $search_term
 		}
-		"winget" => { run ^$pkg_manager search $SearchTerm --source winget --accept-package-agreements }
+		"winget" => { run ^$pkg_manager search $search_term --source winget}
 	}
 }
 

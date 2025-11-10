@@ -1,10 +1,23 @@
 #!/usr/bin/env nu
 
-use ($nu.config-path | path dirname | path join "functions/utils.nu") dependency_check
+use ($nu.config-path | path dirname | path join "functions/utils.nu") [dependency_check, detect_os]
+
+
+def get_help [] {
+	print "------------------------------------------------------------------------------------------------------------"
+	print $"(ansi green)Options for gpu-mode(ansi reset)"
+	print $"(ansi white)Usage:(ansi reset) nudo (ansi yellow)set (ansi reset)(ansi purple)<dispatcher>(ansi reset)"
+	print $"(ansi yellow)dispatchers: " #Continue THIS!
+	print $"(ansi purple)powersave | p(ansi reset) .............. (ansi cyan)Power saving profile."
+	print $"(ansi purple)balanced | b(ansi reset) ............... (ansi cyan)Balanced profile"
+	print $"(ansi purple)max | gaming | g(ansi reset) ........... (ansi cyan)Max clocks/gaming profile"
+	print "------------------------------------------------------------------------------------------------------------"
+} 
 
 export def mode-set [mode: string] {
 	
 	dependency_check "nvidia-smi"
+	detect_os linux bsd
 
 	let NVIDIA_ARGS = match ($mode | str downcase) {
 		"powersave" | "p" => {
@@ -17,8 +30,13 @@ export def mode-set [mode: string] {
 			"-lgc 1950,1950"
 		},
 		_ => {
+			get_help
 			error make {
-				msg: $"Option: ($mode) not found.",
+				msg: "Unknown Mode",
+				label: {
+					text: $"\"($mode)\" Is not a valid mode.",
+					span: (metadata $mode).span
+				},
 				exit_code: 1
 			}
 		},
