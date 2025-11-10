@@ -8,9 +8,9 @@ use ($nu.config-path | path dirname | path join "functions/utils.nu") *
 	let editor_found = any_one_of ($env.config.buffer_editor?) ($env.EDITOR?) "nvim" "vim" "nano" "hx" "vi"
 	for path in $path_list {
 		let file_create = not ($path | path exists)
-		if not ($file_create) and not (($path | path type) == "file") {
+		if not ($file_create) and (($path | path type) == "dir") {
 			error make {
-				msg: $"(ansi red) Disasterous! ($path) Is a directory! (ansi reset)",
+				msg: $"(ansi red)Disasterous! ($path) Is a directory! (ansi reset)",
 				exit_code: 1,
 			}
 		}
@@ -25,7 +25,7 @@ use ($nu.config-path | path dirname | path join "functions/utils.nu") *
 		if not ($file_create) {
 			open $path | save --force $buffer_file
 		} else {
-			echo "" | save --force $buffer_file
+			print "" | save --force $buffer_file
 		}
 
 		nu --commands $"^($editor_found) ($buffer_file)" ##Start Editting! Finally.
@@ -36,9 +36,8 @@ use ($nu.config-path | path dirname | path join "functions/utils.nu") *
 			try {
 				open $buffer_file | save --force $path
 			} catch {
-				sudo nu --commands $"open ($buffer_file) | save --force ($path)"
+				^(any_one_of sudo doas run0) nu --commands $"open ($buffer_file) | save --force ($path)"
 			}
 		}
 	}
-
 }
