@@ -7,6 +7,8 @@ export def wm [] {
 	detect_os linux bsd
 	if ($env.XDG_CURRENT_DESKTOP? | is-empty) {
 		let window_manager = (get-toggles | find wm | get value? | get 0?)
-		^$window_manager | save -f ($nu.cache-dir | path join "WindowManager.log")
+		if ($window_manager | is-not-empty) {
+			^$window_manager | save -f ($nu.cache-dir | path join "WindowManager.log")
+		}
 	}
 }

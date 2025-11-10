@@ -9,6 +9,7 @@ export def get_help [] {
 	print $"(ansi purple)get env(ansi reset) ............... (ansi cyan)Get a list of all environmental variables."
 	print $"(ansi purple)set toggle(ansi reset) ............ (ansi cyan)Set a toggle."
 	print $"(ansi purple)get toggle(ansi reset) ............ (ansi cyan)Get all toggles."
+	print $"(ansi purple)set mode(ansi reset) .............. (ansi cyan)Set performance profiles on an nvidia gpu."
 	print "------------------------------------------------------------------------------------------------------------"
 	print $"(ansi yellow)List of toggles: (ansi reset)"
 	print $"(ansi purple)1. Color .......................... (ansi cyan)Toggle whether pywal should be executed on .current_image in ($nu.home-path)/Pictures\(this is to be symlinked to the current wallpaper!\) or the wallpath you set."
