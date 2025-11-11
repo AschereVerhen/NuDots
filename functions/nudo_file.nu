@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
 ##Define which functions nudo can access:
-const functions_dir = ($nu.config-path | path dirname | path join "functions" | path expand)
+const functions_dir = ($nu.default-config-dir | path join "functions")
 use ($functions_dir | path join "editsu.nu") * ##Import editsu. MAKE SURE THIS ISNT IN MOD.NU!!!!
 use ($functions_dir | path join "gpu-mode.nu") *
 use ($functions_dir | path join "pkg_manager.nu") *
@@ -59,13 +59,13 @@ export def --env --wrapped nudo [function: string, ...args: string] {
 			clean
 		},
 		"update" => {
-			args_required $args 1
+			args_required $args 0
 			update $args
 		},
 		"search" => {
 			args_required $args 1
 			search ($args | get 0)
-		}
+		},
 		"connect" => {
 			detect_os linux
 			args_required $args 0 #Here args arent really required.
