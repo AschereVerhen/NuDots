@@ -63,11 +63,12 @@ if ($nu.os-info.name == "linux" or $nu.os-info.name == "bsd") {
 		}
 	}
 }
-fastfetch --config examples/10
+if (which fastfetch | is-not-empty) { fastfetch --config examples/10 }
+init-all ##Initialize the keybinds for fzf integration
 ###End Of section###
 
 # --- Aliases ---
-alias ff = fastfetch --config examples/13
+alias ff = fastfetch --config examples/10
 alias search = paru --noconfirm
 alias bvum = nvim
 alias nvum = nvim
