@@ -21,7 +21,7 @@ export def dependency_check [...programs: string] {
 export def any_one_of [...programs: string] {
 	let there = ($programs | where {
 		|package|
-		(which $package | is-not-empty)
+		if ($package | is-not-empty) {(which $package | is-not-empty)} else {null}
 	});
 	if ($there | is-empty) {
 		error make {
@@ -77,7 +77,7 @@ export def args_required [args_list: list<string>, args_atleast: int] {
 				text: $"Required args: ($args_atleast), got: ($total_args)",
 				span: $span
 			},
-			return_code: 1
+			exit_code: 1
 		}
 	}
 }
