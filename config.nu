@@ -1,12 +1,12 @@
 ###Setting Up Toggles File###
+if not ($nu.data-dir | path exists) {
+    mkdir $nu.data-dir
+}
 if not ($nu.data-dir | path join "toggles" | path exists) {
 	"" | save -f ($nu.data-dir | path join "toggles")
 }
 
 ###Sourcing Functions###
-if not ($nu.data-dir | path exists) {
-    mkdir $nu.data-dir
-}
 $env.PERSISTENT_TOGGLES = ($nu.data-dir | path join "toggles" | open | parse "{toggle}: {value}")
 const functions_path = ($nu.config-path | path dirname | path join "functions")
 if not ($functions_path | path exists) {
