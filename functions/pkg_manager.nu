@@ -7,28 +7,15 @@ def figure_out_pkg_manager [] {
 	any_one_of paru yay pacman emerge winget
 }
 
-def make_command [pkg_manager: string] {
-	let priv_cmd = any_one_of sudo doas run0
-	let command = match $pkg_manager {
-		"pacman" | "emerge" => {
-			$"($priv_cmd) ($pkg_manager)"
-		},
-		_ => {
-			$pkg_manager
-		}
-	}
-	return $command
-}
-
 export def install [package: list<string>] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let command = make_command $pkg_manager
+	let priv = any_one_of sudo doas run0
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => { 
-			run $command -S --noconfirm --color=always ...$package 
+			run $priv $pkg_manager -S --noconfirm --color=always ...$package 
 		},
 		"emerge" => { 
-			run $command -qv ...$package 
+			run $priv $pkg_manager -qv ...$package
 		},
 		"winget" => { run $pkg_manager install ...$package --source winget --accept-package-agreements }
 	}
@@ -36,13 +23,13 @@ export def install [package: list<string>] {
 
 export def remove [package: list<string>] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let command = make_command $pkg_manager
+	let priv = any_one_of sudo doas run0
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
-			run $command -Rns --noconfirm ...$package
+			run $priv $pkg_manager -Rns --noconfirm ...$package
 		},
 		"emerge" => {
-			run $command -C ...$package		
+			run $priv $pkg_manager -C ...$package		
 		},
 		"winget" => { run $pkg_manager uninstall ...$package --source winget }
 	}
@@ -50,7 +37,7 @@ export def remove [package: list<string>] {
 
 export def clean [] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let command = make_command $pkg_manager
+	let priv = any_one_of sudo doas run0
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
 			run sudo rm -rf ($env.HOME | path join .cache/paru)
@@ -61,21 +48,20 @@ export def clean [] {
 			print $"(ansi green)Removing Orphaned packages in the background..."
 		},
 		"emerge" => {
-			run $command --depclean
+			run $priv $pkg_manager --depclean
 		}
 	}
 }
 
 export def update [optional_packages: list<string> = [""]] {
 	let pkg_manager = (figure_out_pkg_manager)
-	
-	let command = make_command $pkg_manager
+	let priv = any_one_of sudo doas run0
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
-			run $command -Syu --noconfirm ...$optional_packages
+			run $priv $pkg_manager -Syu --noconfirm ...$optional_packages
 		},
 		"emerge" => {
-			run $command -qvuDN @world ...$optional_packages
+			run $priv $pkg_manager -qvuDN @world ...$optional_packages
 		},
 		"winget" => { run $pkg_manager update --all --source winget --accept-package-agreements }
 	}
@@ -85,13 +71,13 @@ export def update [optional_packages: list<string> = [""]] {
 
 export def search [search_term: string] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let command = make_command $pkg_manager
+	let priv = any_one_of sudo doas run0
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
-			run $command -Ss $search_term
+			run $priv $pkg_manager -Ss $search_term
 		},
 		"emerge" => {
-			run $command --search $search_term
+			run $priv $pkg_manager --search $search_term
 		},
 		"winget" => { run $pkg_manager search $search_term --source winget}
 	}
