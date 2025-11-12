@@ -9,8 +9,13 @@ export def dependency_check [...programs: string] {
 		(which $package | is-empty)
 	})
 	if not ($not_there | is-empty) {
+		let span = (metadata $programs).span
 		error make {
-			msg: $"(ansi red)($not_there | str join ', ') Not found. Please install the packages.",
+			msg: $"(ansi red)($not_there | str join ', ') Not found. Please install it.",
+			label: {
+				text: "Dependency Check failed.",
+				span: $span
+			}
 			exit_code: 1
 		}
 	} else {
@@ -24,8 +29,13 @@ export def any_one_of [...programs: string] {
 		if ($package | is-not-empty) {(which $package | is-not-empty)} else {null}
 	});
 	if ($there | is-empty) {
+		let span = (metadata $programs).span
 		error make {
 			msg: $"(ansi red)None of the programs: ($programs | str join ', ') were installed.",
+			label: {
+				text: "Atleast One of the above was required. None were installed.",
+				span: $span
+			}
 			exit_code: 1
 		}
 	} else {
@@ -39,6 +49,7 @@ export def run --wrapped [...command: string] {
 	try {
 		^$command
 	} catch {|e|
+		print $e
 		let error_msg = $e.msg
 		error make {
 			msg: $error_msg
