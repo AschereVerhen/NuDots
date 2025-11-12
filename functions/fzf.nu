@@ -50,7 +50,7 @@ export def  fzf-history [] {
 	}
 }
 
-export def fzf-file-init --env [] {
+export def fzf-directory-init --env [] {
 	$env.config.keybindings ++= [{
 		name: "Transverse the file structure with fzf.",
 		modifier: control,
@@ -59,14 +59,14 @@ export def fzf-file-init --env [] {
 		event: [
 			{edit: Clear},
 			{edit: InsertString,
-			value: "fzf-file"}
+			value: "fzf-directory"}
 			{send: Enter},
 			{edit: Clear}
 		]
 	}]
 }
 
-export def fzf-file --env [] {
+export def fzf-directory --env [] {
 	dependency_check fzf fd
 	# let curr_dir = (pwd)
 	let directories = (fd -H)
@@ -100,7 +100,7 @@ export def fzf-edit [] {
 
 export def init-all --env [] {
 	fzf-history-init
-	fzf-file-init
+	fzf-directory-init
 	fzf-edit-init
 }
 

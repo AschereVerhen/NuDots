@@ -47,10 +47,10 @@ export def --env --wrapped nudo [function: string, ...args: string] {
 			install $args
 		},
 		"remove" => {
-			args_required $args 2
+			args_required $args 1
 			match ($args | get 0) {
-				"env" => { remove-env ($args | get 1) },
-				"toggle" => { remove-toggle ($args | get 1)},
+				"env" => { args_required $args 2; remove-env ($args | get 1) },
+				"toggle" => { args_required $args 2; remove-toggle ($args | get 1)},
 				_ => { remove $args }
 			}
 		},
@@ -72,24 +72,32 @@ export def --env --wrapped nudo [function: string, ...args: string] {
 			blueconnect (if not ($args | is-empty) { $args | get 0 })
 		},
 		"set" => {
-			
+			args_required $args 1	
 			match ($args | get -o 0) {
 				"env" => {args_required $args 3; set-env ($args | get 1) ($args | get 2) },
 				"toggle" => { args_required $args 3; set-toggle ($args | get 1) ($args | get 2) },
 				"mode" => { args_required $args 2; mode-set ($args | get 1)}
-				_ => get_help
+				_ => {get_help}
 			}
 		},
 		"get" => {
+			args_required $args 1
 			match ($args | get -o 0) {
 				"env" => { get-env },
 				"toggle" => { get-toggle},
-				_ => get_help
+				_ => {get_help}
 			}
 		},
-
 		_ => {
-			print -e "Function does not exists or is not imported."
+			help_command
+			error make {
+				msg: "Subcommand not found.",
+				label: {
+					text: $"($function) not found. Please Ensure there is no typo.",
+					span: (metadata $function).span
+				},
+				error_code: 1
+			}
 		}
 	}
 };
