@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
 
-use ($nu.default-config-path | path join "functions/utils.nu") *
+use ($nu.default-config-dir | path join "functions/utils.nu") *
 
 def get_devices [] {
 	mut counter = 1
@@ -13,7 +13,7 @@ def get_devices [] {
 		run bluetoothctl scan on
 		$counter += 1
 	} ##The escape condition will only be true if ^bluetoothctl devices | is-empty returned false
-	if ($counter <= 10) {
+	if ($counter < 10) {
 		let list_of_devices = (bluetoothctl devices | split row "\n" | parse "Device {mac} {name}")
 		return $list_of_devices
 	}
