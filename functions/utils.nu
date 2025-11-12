@@ -49,7 +49,6 @@ export def run --wrapped [...command: string] {
 	try {
 		^$command
 	} catch {|e|
-		print $e
 		let error_msg = $e.msg
 		error make {
 			msg: $error_msg
