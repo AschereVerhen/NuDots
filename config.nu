@@ -4,10 +4,10 @@ if not ($nu.data-dir | path join "toggles" | path exists) {
 }
 
 ###Sourcing Functions###
-$env.PERSISTENT_TOGGLES = ($nu.data-dir | path join "toggles" | open | parse "{toggle}: {value}")
 if not ($nu.data-dir | path exists) {
     mkdir $nu.data-dir
 }
+$env.PERSISTENT_TOGGLES = ($nu.data-dir | path join "toggles" | open | parse "{toggle}: {value}")
 const functions_path = ($nu.config-path | path dirname | path join "functions")
 if not ($functions_path | path exists) {
     mkdir $functions_path
@@ -21,14 +21,13 @@ use $functions_path *
 
 
 ###Nushell Variables###
-$env.PROMPT_COMMAND = {|| 
-    # The default Starship command for Nushell
-    starship prompt
+if (which starship | is-not-empty) {
+	$env.PROMPT_COMMAND = {|| 
+    		# The default Starship command for Nushell
+    		starship prompt
+	}
 }
 $env.config.show_banner = false
-# Starship handles the PROMPT_INDICATOR/PROMPT_INDICATOR_VI as well, 
-# but setting them to a simple value is safe.
-# Note the change from 'let-env PROMPT_INDICATOR' to '$env.PROMPT_INDICATOR'
 $env.PROMPT_INDICATOR = {|| " " }
 $env.PROMPT_INDICATOR_VI = {|| " " }
 ###End of Section ###
@@ -39,7 +38,6 @@ let colors = (
     try {
         $env.PERSISTENT_TOGGLES | find "colors" | get value | get 0 | str trim | into bool
     } catch {
-        # true
 	false
     }
 )
@@ -54,14 +52,8 @@ if ($colors and (which wal | is-not-empty) and not ((tty) =~ "tty")) {
 
 
 ###AutoStarts###
-if ($nu.os-info.name == "linux" or $nu.os-info.name == "bsd") {
-	try {
-		wm
-	} catch {
-		if (open $nu.env-path | find wm | is-empty) {
-			print -e $"(ansi red)No window manager was selected. If you do not plan on using tty for login, please comment wm from autostart in config nu." $" else, please consider defining a wm using \"nudo set toggle wm <window manager>\".(ansi reset)"
-		}
-	}
+if ($nu.os-info.name == "linux" or $nu.os-info.name =~ "bsd") {
+	wm
 }
 if (which fastfetch | is-not-empty) { fastfetch --config examples/10 }
 init-all ##Initialize the keybinds for fzf integration
@@ -73,3 +65,4 @@ alias search = paru --noconfirm
 alias bvum = nvim
 alias nvum = nvim
 alias poweroff = sudo systemctl poweroff -i
+alias ka = killall
