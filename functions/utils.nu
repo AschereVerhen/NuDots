@@ -46,7 +46,7 @@ export def run --wrapped [...command: string] {
 				text: $"(ansi red)Command: `($command | str join ' ')` failed.",
 				span: $span
 			}
-			exit_code: $e.exit_code,
+			exit_code: 1,
 		}
 	}
 }
