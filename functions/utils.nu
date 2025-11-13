@@ -47,7 +47,7 @@ export def any_one_of [...programs: string] {
 export def run --wrapped [...command: string] {
 	let span = (metadata $command).span
 	try {
-		^$command
+		^$command	
 	} catch {|e|
 		let error_msg = $e.msg
 		error make {

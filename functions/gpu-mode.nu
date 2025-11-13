@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use ($nu.config-path | path dirname | path join "functions/utils.nu") [dependency_check, detect_os]
+use ($nu.config-path | path dirname | path join "functions/utils.nu") [dependency_check, detect_os, any_one_of]
 
 
 def get_help [] {
@@ -42,5 +42,5 @@ export def mode-set [mode: string] {
 		},
 	}
 
-	sudo nu --commands $"^nvidia-smi -pm 1; ^nvidia-smi ($NVIDIA_ARGS)" | ignore
+	^(any_one_of sudo doas run0) nu --commands $"^nvidia-smi -pm 1; ^nvidia-smi ($NVIDIA_ARGS)" | ignore
 }

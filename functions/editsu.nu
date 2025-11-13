@@ -2,7 +2,7 @@
 
 use ($nu.config-path | path dirname | path join "functions/utils.nu") *
 
- export def edit [path_list: list<string>] {
+export def edit [path_list: list<string>] {
 	#preferred way	<--------	      Posix Way<---------
 	#			|				|
 	let editor_found = any_one_of ($env.config.buffer_editor?) ($env.EDITOR?) "nvim" "vim" "nano" "hx" "vi"
@@ -25,7 +25,9 @@ use ($nu.config-path | path dirname | path join "functions/utils.nu") *
 		if not ($file_create) {
 			open $path | save --force $buffer_file
 		} else {
-			print "" | save --force $buffer_file
+			echo "" | save --force $buffer_file #USE ECHO INSTEAD OF PRINT.
+			#print will convert "" => null, save will malfunction. Disaster.
+			#Echo on the other hand will not.
 		}
 
 		nu --commands $"^($editor_found) ($buffer_file)" ##Start Editting! Finally.
