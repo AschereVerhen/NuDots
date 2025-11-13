@@ -25,6 +25,7 @@ def help_command [] {
     print $"  (ansi green)set <env/toggle> <value>(ansi reset) (ansi purple)Be able to set a specific toggle or set a new environmental variable(ansi reset)"
     print $"  (ansi green)set mode <mode>(ansi reset) ........ (ansi purple)Set the system's GPU/performance mode.(ansi reset)"
     print $"  (ansi green)get <envs/toggles>(ansi reset) ..... (ansi purple)Be able to get the current value of all settings or environmental variables declared..(ansi reset)"
+    print $"  (ansi green)get log(ansi reset) ................ (ansi purple)See the log of the compilation of your package in real-time \(Gentoo Only\)"
     print $"  (ansi green)remove <envs/toggles>(ansi reset) .. (ansi purple)Be able to remove a specific toggle or env by its name.(ansi reset)"
     print ""
 }
