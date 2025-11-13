@@ -45,8 +45,8 @@ export def  fzf-history [] {
 	}
 	let terminal_history = ($nu.history-path | open)
 	if ($terminal_history | is-not-empty) {
-		let selected_cmd = ($terminal_history | lines | reverse | to text | fzf)
-		^$selected_cmd #run.
+		let selected_cmd = ($terminal_history | lines | reverse | uniq | to text | fzf)
+		nu --commands $selected_cmd #run.
 	}
 }
 
@@ -57,20 +57,25 @@ export def fzf-directory-init --env [] {
 		keycode: char_t,
 		mode: emacs,
 		event: [
-			{edit: Clear},
+			{edit: CutFromLineStart},
 			{edit: InsertString,
-			value: "fzf-directory"}
+			value: "fzf-directory "},
+			{edit: Paste},
 			{send: Enter},
 			{edit: Clear}
 		]
 	}]
 }
 
-export def fzf-directory --env [] {
+export def fzf-directory --env [pwd: string = ""] {
 	dependency_check fzf fd
-	# let curr_dir = (pwd)
-	let directories = (fd -H)
-	cd ($directories | fzf | if (($in | path type) == "dir") {$in} else {($in | path dirname)})
+	let $pwd = if ($pwd | is-not-empty) {
+		$pwd
+	} else {
+		(pwd)
+	}
+	let directories = (fd -H --search-path $pwd)
+	cd ($directories | fzf  --walker-skip=target,proc,sys,dev,.git | if (($in | path type) == "dir") {$in} else {($in | path dirname)})
 }
 
 
@@ -81,22 +86,26 @@ export def fzf-edit-init --env [] {
 		keycode: char_e,
 		mode: emacs,
 		event: [
-			{edit: Clear},
+			{edit: CutFromLineStart },
 			{edit: InsertString,
-			value: "fzf-edit"}
+			value: "fzf-edit "},
+			{edit: Paste},
 			{send: Enter},
 			{edit: Clear}
 		]
 	}]
 }
 
-export def fzf-edit [] {
+export def fzf-edit [pwd: string = ""] {
 	dependency_check fzf fd bat
-	let directories = (fd -H)
-	edit [($directories | fzf --preview "bat --color=always {}")]
+	let $pwd = if ($pwd | is-not-empty) {
+		$pwd
+	} else {
+		(pwd)
+	}
+	let directories = (fd -H --search-path $pwd)
+	edit [($directories | fzf --preview "bat --color=always {}" --walker-skip=target,proc,sys,dev,.git )]
 }
-
-
 
 export def init-all --env [] {
 	fzf-history-init
