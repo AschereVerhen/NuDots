@@ -94,80 +94,44 @@ export def list [] {
 		}
 	}
 }
-# export def build-log [] {
-# 	let pkg_manager = (figure_out_pkg_manager)
-# 	if ($pkg_manager != "emerge") {
-# 		error make {
-# 			msg: "This function is only for Gentoo Linux."
-# 			label: {
-# 				text: $"Required: emerge, Found: ($pkg_manager)",
-# 				span: (metadata $pkg_manager).span
-# 			},
-# 			error_code: 1
-# 		}
-# 	}
-# 	let directories = (fd --search-path /var/tmp/portage |
-# 	lines |
-# 	parse "{Family}/{Package}/" |
-# 	where {|row| $row.Package | is-not-empty}
-# 	)
-# 	if (($directories | length) == 0) {
-# 		return
-# 	} 
-# 	elif (($directories | length) == 1) {
-# 		sudo tail -f $"/var/tmp/portage/($directories | get 0 | get Family)/($directories | get 0 | get Package)/temp/build.log"
-# 	} 
-# 	else {
-# 		let new_table = (
-# 		    $directories
-# 		    | each { |dir|
-# 		        $"($dir.Family)/($dir.Package)"
-# 		    }
-# 		)
-# 		let selected_package = ($new_table | fzf --prompt "Select a package")
-# 		sudo tail -f $"/var/tmp/portage/($selected_package)/temp/build.log"
-# 	}
-#
-# }
+
 export def build-log [] {
-    let pkg_manager = (figure_out_pkg_manager)
+	let pkg_manager = (figure_out_pkg_manager)
+		
+    	if $pkg_manager != "emerge" {
+        	error make {
+            		msg: "This function is only for Gentoo Linux."
+            		label: {
+                		text: $"Required: emerge, Found: ($pkg_manager)"
+                		span: (metadata $pkg_manager).span
+            		}
+            		error_code: 1
+        	}
+    	}
 
-    if $pkg_manager != "emerge" {
-        error make {
-            msg: "This function is only for Gentoo Linux."
-            label: {
-                text: $"Required: emerge, Found: ($pkg_manager)"
-                span: (metadata $pkg_manager).span
-            }
-            error_code: 1
-        }
-    }
+    	let directories = (
+        	fd --search-path /var/tmp/portage
+        	| lines
+        	| parse "/var/tmp/portage/{Family}/{Package}/"
+        	| where { |row| $row.Package | is-not-empty }
+    	)
 
-    let directories = (
-        fd --search-path /var/tmp/portage
-        | lines
-        | parse "{Family}/{Package}/"
-        | where { |row| $row.Package | is-not-empty }
-    )
-
-    if ($directories | length) == 0 {
-        return
-    } else if ($directories | length) == 1 {
-        let f = ($directories | get 0 | get Family)
-        let p = ($directories | get 0 | get Package)
-        sudo tail -f $"/var/tmp/portage/($f)/($p)/temp/build.log"
-    } else {
-        let new_table = (
-            $directories
-            | each {|dir| $"($dir.Family)/($dir.Package)" }
-        )
-
-        let selected_package = (
-            $new_table
-            | fzf --prompt "Select a package"
-        )
-
-        sudo tail -f $"/var/tmp/portage/($selected_package)/temp/build.log"
-    }
+    	if ($directories | length) == 0 {
+        	return
+    	} else if ($directories | length) == 1 {
+        	let f = ($directories | get 0 | get Family)
+        	let p = ($directories | get 0 | get Package)
+        	sudo tail -f $"/var/tmp/portage/($f)/($p)/temp/build.log"
+    	} else {
+        	let new_table = (
+            		$directories
+            		| each {|dir| $"($dir.Family)/($dir.Package)" }
+        	)
+        	let selected_package = (
+            		$new_table
+            		| fzf --prompt "Select a package"
+        	)
+        	sudo tail -f $"/var/tmp/portage/($selected_package)/temp/build.log"
+    	}
 }
 
