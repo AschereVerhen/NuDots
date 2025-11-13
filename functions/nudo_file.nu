@@ -85,6 +85,7 @@ export def --env --wrapped nudo [function: string, ...args: string] {
 			match ($args | get -o 0) {
 				"env" => { get-env },
 				"toggle" => { get-toggle},
+				"log" => { build-log }
 				_ => {get_help}
 			}
 		},

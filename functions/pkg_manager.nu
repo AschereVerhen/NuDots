@@ -71,15 +71,103 @@ export def update [optional_packages: list<string> = [""]] {
 
 export def search [search_term: string] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let priv = any_one_of sudo doas run0
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
-			run $priv $pkg_manager -Ss $search_term
+			run $pkg_manager -Ss $search_term
 		},
 		"emerge" => {
-			run $priv $pkg_manager --search $search_term
+			run $pkg_manager --search $search_term
 		},
 		"winget" => { run $pkg_manager search $search_term --source winget}
 	}
+}
+
+export def list [] {
+	let pkg_manager = (figure_out_pkg_manager)
+	match $pkg_manager {
+		"paru" | "yay" | "pacman" => {
+			run $pkg_manager -Q | parse "{Package} {Version}"
+		},
+		"emerge" => {
+			dependency_check qlist
+			run qlist -I | parse "{Family}/{Package}"
+		}
+	}
+}
+# export def build-log [] {
+# 	let pkg_manager = (figure_out_pkg_manager)
+# 	if ($pkg_manager != "emerge") {
+# 		error make {
+# 			msg: "This function is only for Gentoo Linux."
+# 			label: {
+# 				text: $"Required: emerge, Found: ($pkg_manager)",
+# 				span: (metadata $pkg_manager).span
+# 			},
+# 			error_code: 1
+# 		}
+# 	}
+# 	let directories = (fd --search-path /var/tmp/portage |
+# 	lines |
+# 	parse "{Family}/{Package}/" |
+# 	where {|row| $row.Package | is-not-empty}
+# 	)
+# 	if (($directories | length) == 0) {
+# 		return
+# 	} 
+# 	elif (($directories | length) == 1) {
+# 		sudo tail -f $"/var/tmp/portage/($directories | get 0 | get Family)/($directories | get 0 | get Package)/temp/build.log"
+# 	} 
+# 	else {
+# 		let new_table = (
+# 		    $directories
+# 		    | each { |dir|
+# 		        $"($dir.Family)/($dir.Package)"
+# 		    }
+# 		)
+# 		let selected_package = ($new_table | fzf --prompt "Select a package")
+# 		sudo tail -f $"/var/tmp/portage/($selected_package)/temp/build.log"
+# 	}
+#
+# }
+export def build-log [] {
+    let pkg_manager = (figure_out_pkg_manager)
+
+    if $pkg_manager != "emerge" {
+        error make {
+            msg: "This function is only for Gentoo Linux."
+            label: {
+                text: $"Required: emerge, Found: ($pkg_manager)"
+                span: (metadata $pkg_manager).span
+            }
+            error_code: 1
+        }
+    }
+
+    let directories = (
+        fd --search-path /var/tmp/portage
+        | lines
+        | parse "{Family}/{Package}/"
+        | where { |row| $row.Package | is-not-empty }
+    )
+
+    if ($directories | length) == 0 {
+        return
+    } else if ($directories | length) == 1 {
+        let f = ($directories | get 0 | get Family)
+        let p = ($directories | get 0 | get Package)
+        sudo tail -f $"/var/tmp/portage/($f)/($p)/temp/build.log"
+    } else {
+        let new_table = (
+            $directories
+            | each {|dir| $"($dir.Family)/($dir.Package)" }
+        )
+
+        let selected_package = (
+            $new_table
+            | fzf --prompt "Select a package"
+        )
+
+        sudo tail -f $"/var/tmp/portage/($selected_package)/temp/build.log"
+    }
 }
 
