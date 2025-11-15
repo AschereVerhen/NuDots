@@ -33,10 +33,10 @@ export def remove [package: list<string>] {
 	let priv = (priv_finder)
 	match $pkg_manager {		
 		"paru" | "yay" => { 
-			run $pkg_manager -S --noconfirm --color=always ...$package 
+			run $pkg_manager -Rns --noconfirm --color=always ...$package 
 		},
 		"pacman" => {
-			run $priv $pkg_manager -S --noconfirm --color=always ...$package 
+			run $priv $pkg_manager -Rns --noconfirm --color=always ...$package 
 		},
 		"emerge" => {
 			run $priv $pkg_manager -C ...$package		
@@ -68,10 +68,10 @@ export def update [optional_packages: list<string> = [""]] {
 	let priv = (priv_finder)
 	match $pkg_manager {		
 		"paru" | "yay" => { 
-			run $pkg_manager -S --noconfirm --color=always ...$optional_packages 
+			run $pkg_manager -Syu --noconfirm --color=always ...$optional_packages 
 		},
 		"pacman" => {
-			run $priv $pkg_manager -S --noconfirm --color=always ...$optional_packages 
+			run $priv $pkg_manager -Syu --noconfirm --color=always ...$optional_packages 
 		},
 		"emerge" => {
 			run $priv $pkg_manager -qvuDN @world ...$optional_packages
