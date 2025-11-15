@@ -94,7 +94,6 @@ export def list [] {
 		}
 	}
 }
-
 export def build-log [] {
 	let pkg_manager = (figure_out_pkg_manager)
 		
@@ -110,7 +109,7 @@ export def build-log [] {
     	}
 
     	let directories = (
-        	fd --search-path /var/tmp/portage
+        	fd --search-path /var/tmp/portage -d 2
         	| lines
         	| parse "/var/tmp/portage/{Family}/{Package}/"
         	| where { |row| $row.Package | is-not-empty }
@@ -129,6 +128,7 @@ export def build-log [] {
         	)
         	let selected_package = (
             		$new_table
+			| to text
             		| fzf --prompt "Select a package"
         	)
         	sudo tail -f $"/var/tmp/portage/($selected_package)/temp/build.log"
