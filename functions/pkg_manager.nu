@@ -7,6 +7,10 @@ def figure_out_pkg_manager [] {
 	any_one_of paru yay pacman emerge winget
 }
 
+def priv_finder [] {
+	any_one_of sudo doas run0 
+}
+
 export def install [package: list<string>] {
 	let pkg_manager = (figure_out_pkg_manager)
 	let priv = any_one_of sudo doas run0
