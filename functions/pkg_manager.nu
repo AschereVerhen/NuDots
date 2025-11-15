@@ -13,7 +13,7 @@ def priv_finder [] {
 
 export def install [package: list<string>] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let $priv = (priv_finder)
+	let priv = (priv_finder)
 	match $pkg_manager {
 		"paru" | "yay" => { 
 			run $pkg_manager -S --noconfirm --color=always ...$package 
@@ -30,7 +30,7 @@ export def install [package: list<string>] {
 
 export def remove [package: list<string>] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let $priv = (priv_finder)
+	let priv = (priv_finder)
 	match $pkg_manager {		
 		"paru" | "yay" => { 
 			run $pkg_manager -S --noconfirm --color=always ...$package 
@@ -47,7 +47,7 @@ export def remove [package: list<string>] {
 
 export def clean [] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let $priv = (priv_finder)
+	let priv = (priv_finder)
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
 			run $priv rm -rf ($env.HOME | path join .cache/paru)
@@ -65,13 +65,13 @@ export def clean [] {
 
 export def update [optional_packages: list<string> = [""]] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let $priv = (priv_finder)
+	let priv = (priv_finder)
 	match $pkg_manager {		
 		"paru" | "yay" => { 
-			run $pkg_manager -S --noconfirm --color=always ...$package 
+			run $pkg_manager -S --noconfirm --color=always ...$optional_packages 
 		},
 		"pacman" => {
-			run $priv $pkg_manager -S --noconfirm --color=always ...$package 
+			run $priv $pkg_manager -S --noconfirm --color=always ...$optional_packages 
 		},
 		"emerge" => {
 			run $priv $pkg_manager -qvuDN @world ...$optional_packages
