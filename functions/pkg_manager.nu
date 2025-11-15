@@ -13,9 +13,12 @@ def priv_finder [] {
 
 export def install [package: list<string>] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let priv = any_one_of sudo doas run0
+	let $priv = (priv_finder)
 	match $pkg_manager {
-		"paru" | "yay" | "pacman" => { 
+		"paru" | "yay" => { 
+			run $pkg_manager -S --noconfirm --color=always ...$package 
+		},
+		"pacman" => {
 			run $priv $pkg_manager -S --noconfirm --color=always ...$package 
 		},
 		"emerge" => { 
@@ -27,10 +30,13 @@ export def install [package: list<string>] {
 
 export def remove [package: list<string>] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let priv = any_one_of sudo doas run0
-	match $pkg_manager {
-		"paru" | "yay" | "pacman" => {
-			run $priv $pkg_manager -Rns --noconfirm ...$package
+	let $priv = (priv_finder)
+	match $pkg_manager {		
+		"paru" | "yay" => { 
+			run $pkg_manager -S --noconfirm --color=always ...$package 
+		},
+		"pacman" => {
+			run $priv $pkg_manager -S --noconfirm --color=always ...$package 
 		},
 		"emerge" => {
 			run $priv $pkg_manager -C ...$package		
@@ -41,12 +47,12 @@ export def remove [package: list<string>] {
 
 export def clean [] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let priv = any_one_of sudo doas run0
+	let $priv = (priv_finder)
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
-			run sudo rm -rf ($env.HOME | path join .cache/paru)
-			run sudo rm -rf ($env.HOME | path join .cache/yay)
-			run sudo pacman -Scc --noconfirm
+			run $priv rm -rf ($env.HOME | path join .cache/paru)
+			run $priv rm -rf ($env.HOME | path join .cache/yay)
+			run $priv pacman -Scc --noconfirm
 			##Removing orphaned package
 			job spawn { pacman -Qdtq | parse "{name}" | each {|it| ^$pkg_manager -Rns --noconfirm $it.name} }
 			print $"(ansi green)Removing Orphaned packages in the background..."
@@ -59,10 +65,13 @@ export def clean [] {
 
 export def update [optional_packages: list<string> = [""]] {
 	let pkg_manager = (figure_out_pkg_manager)
-	let priv = any_one_of sudo doas run0
-	match $pkg_manager {
-		"paru" | "yay" | "pacman" => {
-			run $priv $pkg_manager -Syu --noconfirm ...$optional_packages
+	let $priv = (priv_finder)
+	match $pkg_manager {		
+		"paru" | "yay" => { 
+			run $pkg_manager -S --noconfirm --color=always ...$package 
+		},
+		"pacman" => {
+			run $priv $pkg_manager -S --noconfirm --color=always ...$package 
 		},
 		"emerge" => {
 			run $priv $pkg_manager -qvuDN @world ...$optional_packages
