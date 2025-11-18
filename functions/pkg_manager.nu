@@ -108,8 +108,7 @@ export def list [] {
 	}
 }
 export def build-log [] {
-	let pkg_manager = (figure_out_pkg_manager)
-		
+	let pkg_manager = (figure_out_pkg_manager)		
     	if $pkg_manager != "emerge" {
         	error make {
             		msg: "This function is only for Gentoo Linux."
@@ -120,7 +119,7 @@ export def build-log [] {
             		error_code: 1
         	}
     	}
-
+	dependency_check fzf fd
     	let directories = (
         	fd --search-path /var/tmp/portage -d 2
         	| lines
