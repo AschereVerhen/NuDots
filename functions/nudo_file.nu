@@ -90,6 +90,14 @@ export def --env --wrapped nudo [function: string, ...args: string] {
 				_ => {get_help}
 			}
 		},
+		"use" => {
+            		let action = ($args | get -o 0)
+            		match $action {
+                		"set" => { args_required $args 4 },                					    "get" => { args_required $args 2 }
+                		_ => { help_use }
+            		}
+            		genuse $args
+		},
 		_ => {
 			help_command
 			error make {

@@ -147,3 +147,141 @@ export def build-log [] {
     	}
 }
 
+def help_use [] {
+	    print ""
+    print $"(ansi blue)nudo use - one stop management of your useflags. (ansi reset)"
+    print "---------------------------------------------------------"
+    print $"(ansi red)Usage:(ansi reset) nudo use set/get <package_name> flags/keywords/env-file \(only for gentoo.\)"
+    print ""
+    print "Available Commands:"
+    print $"  (ansi green)use <package_name> useflags(ansi reset) ............ (ansi purple)Edit/set useflags. Lines wrote to /etc/portage/package.use/<package_base_name>.(ansi reset)"
+    print $"  (ansi green)keyword(ansi reset) ..... (ansi purple)Quickly set a keyword.(ansi reset)"
+    print $"  (ansi green)env(ansi reset) ...... (ansi purple)Quickly set a env file.(ansi reset)"
+    print ""
+
+}
+
+def set_thing [thing: any, package: any, ...flags: string] {
+	if (($thing | is-empty) or ($package | is-empty) or ($flags | is-empty)) {
+		help_use
+	}
+	
+	let thing = $thing | into string
+	let package = $package | into string
+	let package_base_name = ($package | parse "{family}/{package}" | get package | get 0)
+	let formatted_string = $"($package) ($flags | str join ' ')"
+	
+	let export_file = (
+		match $thing {
+			"use" => {$"/etc/portage/package.use/($package_base_name)"},
+			"keyword" => { $"/etc/portage/package.accept_keyword/($package_base_name)"},
+			"env" => { $"/etc/portage/package.env/($package_base_name)"}
+		}
+	);
+
+	##IF we already are root, we do not need sudo/doas/run0 whatever.
+	try {
+		$formatted_string | save --append --force $export_file
+	} catch {
+		$formatted_string | ^(any_one_of doas sudo run0) tee -a  $export_file
+	}
+}
+
+def get_thing --env [thing: any] {
+	if ($thing | is-empty) {
+		help-use
+	}
+	let $thing = ($thing | into string)
+
+	let read_dir = (
+		match $thing {
+			"use" => {$"/etc/portage/package.use"},
+			"keyword" => { $"/etc/portage/package.accept_keyword"},
+			"env" => { $"/etc/portage/package.env"}
+		}
+	);
+	#Now we will read all the files in read_dir and open em
+	let files = (
+		fd --base-directory $read_dir
+		| to text
+		| lines
+	)
+	cd $read_dir #just in case. I dont wanna code an implimentation to prepend /etc/portage/blah to the files list.
+	let content = ($files | each {|file| open $file} | to text)
+	let final_table = ($content | lines | where {|row| $row | is-not-empty} | parse "{family}/{package} {flags}")
+	$final_table
+}
+
+export def genuse [$args: list<string>] {
+	##If $thing == use, write to /etc/portage/package.use/<package_name>
+	##If $thing == keyword, write to /etc/portage/package.accept_keyword/<package_name>
+	##If $thing == env, write to /etc/portage/package.env/<package_name>
+	let pkg_manager = (figure_out_pkg_manager)		
+    	if $pkg_manager != "emerge" {
+        	error make {
+            		msg: "This function is only for Gentoo Linux."
+            		label: {
+                		text: $"Required: emerge, Found: ($pkg_manager)"
+                		span: (metadata $pkg_manager).span
+            		}
+            		error_code: 1
+        	}
+    	}
+	# let set_or_get = ($args | get  0)
+	# print $set_or_get
+	# let thing = ($args | get  1)
+	# print $thing
+	# let package = ($args | get  2)
+	# print $package
+	# let flags = ($args | slice 3..)
+	# print $flags
+	# match $set_or_get {
+	# 	"set" => set_thing $thing $package ...$flags,
+	# 	"get" => get_thing $thing,
+	# 	_ => help_use,
+	# }
+	# Only get the first argument safely
+    let set_or_get = ($args | get -o 0)
+
+    # Now, match on the command
+    match $set_or_get {
+        "set" => {
+            # 'set' needs a 'thing' and a 'package'. Flags are optional.
+            # Total args needed: "set", "thing", "package" (length = 3)
+            if ($args | length) < 3 {
+                help_use
+                error make { msg: "The 'set' command requires a type (use/keyword/env) and a package." }
+                return
+            }
+
+            # NOW it's safe to define these variables
+            let thing = ($args | get 1)
+            let package = ($args | get 2)
+            let flags = ($args | slice 3..) # This is safe, returns [] if no flags
+            
+            print $"(ansi green)Setting(ansi reset) ($thing) for ($package) with flags: ($flags)"
+            set_thing $thing $package ...$flags
+        },
+
+        "get" => {
+            # 'get' needs a 'thing'.
+            # Total args needed: "get", "thing" (length = 2)
+            if ($args | length) < 2 {
+                help_use
+                error make { msg: "The 'get' command requires a type (use/keyword/env)." }
+                return
+            }
+
+            # NOW it's safe to define this variable
+            let thing = ($args | get 1)
+
+            print $"(ansi green)Getting(ansi reset) ($thing)..."
+            get_thing $thing
+        },
+
+        _ => {
+            # This catches an empty $args list or an unknown command
+            help_use
+        }
+    }
+}
