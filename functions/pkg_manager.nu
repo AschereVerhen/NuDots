@@ -147,7 +147,7 @@ export def build-log [] {
     	}
 }
 
-def help_use [] {
+export def help_use [] {
 	    print ""
     print $"(ansi blue)nudo use - one stop management of your useflags. (ansi reset)"
     print "---------------------------------------------------------"
