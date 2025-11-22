@@ -195,9 +195,9 @@ def get_thing --env [thing: any] {
 
 	let read_dir = (
 		match $thing {
-			"use" => {$"/etc/portage/package.use"},
-			"keyword" => { $"/etc/portage/package.accept_keyword"},
-			"env" => { $"/etc/portage/package.env"}
+			"use" => {"/etc/portage/package.use"},
+			"keyword" => { "/etc/portage/package.accept_keywords"},
+			"env" => { "/etc/portage/package.env"}
 		}
 	);
 	#Now we will read all the files in read_dir and open em
@@ -214,7 +214,7 @@ def get_thing --env [thing: any] {
 
 export def genuse [$args: list<string>] {
 	##If $thing == use, write to /etc/portage/package.use/<package_name>
-	##If $thing == keyword, write to /etc/portage/package.accept_keyword/<package_name>
+	##If $thing == keyword, write to /etc/portage/package.accept_keywords/<package_name>
 	##If $thing == env, write to /etc/portage/package.env/<package_name>
 	let pkg_manager = (figure_out_pkg_manager)		
     	if $pkg_manager != "emerge" {
