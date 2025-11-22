@@ -174,7 +174,7 @@ def set_thing [thing: any, package: any, ...flags: string] {
 	let export_file = (
 		match $thing {
 			"use" => {$"/etc/portage/package.use/($package_base_name)"},
-			"keyword" => { $"/etc/portage/package.accept_keyword/($package_base_name)"},
+			"keyword" => { $"/etc/portage/package.accept_keywords/($package_base_name)"},
 			"env" => { $"/etc/portage/package.env/($package_base_name)"}
 		}
 	);
