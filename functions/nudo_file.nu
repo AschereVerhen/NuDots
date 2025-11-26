@@ -77,7 +77,8 @@ export def --env --wrapped nudo [function: string, ...args: string] {
 			match ($args | get -o 0) {
 				"env" => {args_required $args 3; set-env ($args | get 1) ($args | get 2) },
 				"toggle" => { args_required $args 3; set-toggle ($args | get 1) ($args | get 2) },
-				"mode" => { args_required $args 2; mode-set ($args | get 1)}
+				"mode" => { args_required $args 2; mode-set ($args | get 1)},
+				"genuse" => {args_required $args 4; genuse $args},
 				_ => {get_help}
 			}
 		},
@@ -86,17 +87,10 @@ export def --env --wrapped nudo [function: string, ...args: string] {
 			match ($args | get -o 0) {
 				"env" => { get-env },
 				"toggle" => { get-toggle},
-				"log" => { build-log }
+				"log" => { build-log },
+				"genuse" => {args_required $args 2; genuse $args},
 				_ => {get_help}
 			}
-		},
-		"use" => {
-            		let action = ($args | get -o 0)
-            		match $action {
-                		"set" => { args_required $args 4 },                					    "get" => { args_required $args 2 }
-                		_ => { help_use }
-            		}
-            		genuse $args
 		},
 		_ => {
 			help_command
