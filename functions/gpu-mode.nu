@@ -33,7 +33,7 @@ export def mode-set [mode: string] {
 				}
 			}
 			$"-lgc ($saving_clocks)"
-			debug $"Got clocks: powersave mode: ($saving_clocks)"
+			debug_print $"Got clocks: powersave mode: ($saving_clocks)"
 		},
 		"balanced" | "b" => {
 			let balanced_clocks = (get-toggle | find -i balanced | get value? | get 0?)
@@ -48,7 +48,7 @@ export def mode-set [mode: string] {
 				}
 			}
 			$"-lgc ($balanced_clocks)"
-			debug $"Got clocks: balanced mode: ($balanced_clocks)"
+			debug_print $"Got clocks: balanced mode: ($balanced_clocks)"
 
 		},
 		"max" | "gaming" | "g" => {
@@ -64,10 +64,10 @@ export def mode-set [mode: string] {
 				}
 			}
 			$"-lgc ($max_clocks)"
-			debug $"Got clocks: gaming mode: ($max_clocks)"
+			debug_print $"Got clocks: gaming mode: ($max_clocks)"
 		},
 		_ => {
-			debug $"Mode: ($mode) not recognised."
+			debug_print $"Mode: ($mode) not recognised."
 			get_help
 			error make {
 				msg: "Unknown Mode",

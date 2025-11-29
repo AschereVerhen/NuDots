@@ -92,7 +92,7 @@ export def args_required [args_list: list<string>, args_atleast: int] {
 	}
 }
 
-export def debug [...statement: string] {
+export def debug_print [...statement: string] {
 	##we print a debug statement iff DEBUG toggle is set to 1
 	#implimenting a short get_toggle function to ensure utils.nu has no dependencies.
 	let save_file = ($nu.data-dir | path join "toggles");
