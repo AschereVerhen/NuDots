@@ -226,61 +226,39 @@ export def genuse [$args: list<string>] {
             		error_code: 1
         	}
     	}
-	# let set_or_get = ($args | get  0)
-	# print $set_or_get
-	# let thing = ($args | get  1)
-	# print $thing
-	# let package = ($args | get  2)
-	# print $package
-	# let flags = ($args | slice 3..)
-	# print $flags
-	# match $set_or_get {
-	# 	"set" => set_thing $thing $package ...$flags,
-	# 	"get" => get_thing $thing,
-	# 	_ => help_use,
-	# }
-	# Only get the first argument safely
-    let set_or_get = ($args | get -o 0)
+	let set_or_get = ($args | get -o 0)
 
-    # Now, match on the command
-    match $set_or_get {
-        "set" => {
-            # 'set' needs a 'thing' and a 'package'. Flags are optional.
-            # Total args needed: "set", "thing", "package" (length = 3)
-            if ($args | length) < 3 {
-                help_use
-                error make { msg: "The 'set' command requires a type (use/keyword/env) and a package." }
-                return
-            }
+	match $set_or_get {
+		"set" => {
+			if ($args | length) < 3 {
+				help_use
+				error make { msg: "The 'set' command requires a type (use/keyword/env) and a package." }
+				return
+			}
 
-            # NOW it's safe to define these variables
-            let thing = ($args | get 1)
-            let package = ($args | get 2)
-            let flags = ($args | slice 3..) # This is safe, returns [] if no flags
-            
-            print $"(ansi green)Setting(ansi reset) ($thing) for ($package) with flags: ($flags)"
-            set_thing $thing $package ...$flags
-        },
+			let thing = ($args | get 1)
+			let package = ($args | get 2)
+			let flags = ($args | slice 3..) # This is safe, returns [] if no flags
 
-        "get" => {
-            # 'get' needs a 'thing'.
-            # Total args needed: "get", "thing" (length = 2)
-            if ($args | length) < 2 {
-                help_use
-                error make { msg: "The 'get' command requires a type (use/keyword/env)." }
-                return
-            }
+			print $"(ansi green)Setting(ansi reset) ($thing) for ($package) with flags: ($flags)"
+			set_thing $thing $package ...$flags
+		},
 
-            # NOW it's safe to define this variable
-            let thing = ($args | get 1)
+		"get" => {
+			if ($args | length) < 2 {
+				help_use
+				error make { msg: "The 'get' command requires a type (use/keyword/env)." }
+				return
+			}
 
-            print $"(ansi green)Getting(ansi reset) ($thing)..."
-            get_thing $thing
-        },
+			let thing = ($args | get 1)
 
-        _ => {
-            # This catches an empty $args list or an unknown command
-            help_use
-        }
-    }
+			print $"(ansi green)Getting(ansi reset) ($thing)..."
+			get_thing $thing
+		},
+
+		_ => {
+			help_use
+		}
+	}
 }
