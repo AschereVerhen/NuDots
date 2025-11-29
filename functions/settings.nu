@@ -15,6 +15,10 @@ export def get_help [] {
 	print $"(ansi purple)1. Color .......................... (ansi cyan)Toggle whether pywal should be executed on .current_image in ($nu.home-path)/Pictures\(this is to be symlinked to the current wallpaper!\) or the wallpath you set."
 	print $"(ansi purple)2. wm ............................. (ansi cyan)Select Which window manager should start. \(Note: For x11 wms, just put here startx.\)"
 	print $"(ansi purple)3. wallpath ....................... (ansi cyan)Select a wallpaper path which will be used to generate pywal colors."
+	print $"(ansi purple)4. DEBUG .......................... (ansi cyan)Turn on debugging mode for more debug print statements. \(Set value to anything\)"
+	print $"(ansi purple)5. powersave [min,max] ............ (ansi cyan)Set Memclocks for powersaving mode for nvidia gpus."
+	print $"(ansi purple)6. balanced [min,max] ............. (ansi cyan)Set Memclocks for balanced mode."
+	print $"(ansi purple)7. gaming [min,max] ............... (ansi cyan)Set Memclocks for gaming/max mode."
 } 
 
 ##Fetchs the custom envs set 

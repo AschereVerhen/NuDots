@@ -67,3 +67,4 @@ alias bvum = nvim
 alias nvum = nvim
 alias poweroff = sudo systemctl poweroff -i
 alias ka = killall
+

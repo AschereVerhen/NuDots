@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
 use ($nu.config-path | path dirname | path join "functions/utils.nu") [dependency_check, detect_os, any_one_of]
-
+use ($nu.default-config-dir | path join "functions/settings.nu") [get-toggle]
 
 def get_help [] {
 	print "------------------------------------------------------------------------------------------------------------"
@@ -21,15 +21,53 @@ export def mode-set [mode: string] {
 
 	let NVIDIA_ARGS = match ($mode | str downcase) {
 		"powersave" | "p" => {
-			"-lgc 100,100"
+			let saving_clocks = (get-toggle | find -i powersave | get value? | get 0?)
+			if ($saving_clocks | is-empty) {
+				error make {
+					msg: $"(ansi red)Please set a powersaving mode using nudo set toggle.",
+					label: {
+						text: "This command returned null.",
+						span: (metadata $saving_clocks).span,
+					},
+					exit_code: 1
+				}
+			}
+			$"-lgc ($saving_clocks)"
+			debug $"Got clocks: powersave mode: ($saving_clocks)"
 		},
 		"balanced" | "b" => {
-			"-lgc 500,800"
+			let balanced_clocks = (get-toggle | find -i balanced | get value? | get 0?)
+			if ($balanced_clocks | is-empty) {
+				error make {
+					msg: $"(ansi red)Please set a balanced mode using nudo set toggle.",
+					label: {
+						text: "This command returned null.",
+						span: (metadata $balanced_clocks).span,
+					},
+					exit_code: 1
+				}
+			}
+			$"-lgc ($balanced_clocks)"
+			debug $"Got clocks: balanced mode: ($balanced_clocks)"
+
 		},
 		"max" | "gaming" | "g" => {
-			"-lgc 1950,1950"
+			let max_clocks = (get-toggle | find -i gaming | get value? | get 0?)
+			if ($max_clocks | is-empty) {
+				error make {
+					msg: $"(ansi red)Please set a max mode using nudo set toggle.",
+					label: {
+						text: "This command returned null.",
+						span: (metadata $max_clocks).span,
+					},
+					exit_code: 1
+				}
+			}
+			$"-lgc ($max_clocks)"
+			debug $"Got clocks: gaming mode: ($max_clocks)"
 		},
 		_ => {
+			debug $"Mode: ($mode) not recognised."
 			get_help
 			error make {
 				msg: "Unknown Mode",
