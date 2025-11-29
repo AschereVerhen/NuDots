@@ -30,10 +30,31 @@ export def edit [path_list: list<string>] {
 			#Echo on the other hand will not.
 		}
 
+		##Implimenting Atomic Lock System.
+		let lock_database = "/tmp/nudo/locks";
+		if not ($lock_database | path exists) {mkdir $lock_database};
+		##Check if a lock for this particular file.
+		let lock_file = ($lock_database | path join $"($path | path basename).lock");
+		if ($lock_file | path exists) {
+			error make {
+				msg: $"(ansi red)It seems that another instance of nushell is already editing this file. Will not continue further. Please remove (ansi green)($lock_file)(ansi red) If you want to edit this file anyways.(ansi reset)",
+				label: {
+					text: $"(ansi red)Please remove (ansi green)($lock_file)(ansi red) If you want to edit this file anyways.(ansi reset)",
+					span: (metadata $lock_file).span,
+				},
+				exit_code: 1
+			}
+		} else {
+			touch $lock_file
+		}
+
+
 		nu --commands $"^($editor_found) ($buffer_file)" ##Start Editting! Finally.
 
 		let og_contents = if ($file_create) { "" } else { (open $path | to text) } 
 		let new_contents = (open $buffer_file | to text)
+
+		##Implimenting Atomic Locking system.
 		if not ($og_contents == $new_contents) {	
 			try {
 				open $buffer_file | save --force $path
@@ -41,5 +62,6 @@ export def edit [path_list: list<string>] {
 				^(any_one_of sudo doas run0) nu --commands $"open ($buffer_file) | save --force ($path)"
 			}
 		}
+		rm $lock_file
 	}
 }
