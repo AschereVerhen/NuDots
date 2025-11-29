@@ -57,6 +57,7 @@ if ($nu.os-info.name == "linux" or $nu.os-info.name =~ "bsd") {
 }
 if (which fastfetch | is-not-empty) { fastfetch --config examples/10 }
 init-all ##Initialize the keybinds for fzf integration
+astart
 ###End Of section###
 
 # --- Aliases ---

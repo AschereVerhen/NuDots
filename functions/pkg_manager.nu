@@ -50,9 +50,8 @@ export def clean [] {
 	let priv = (priv_finder)
 	match $pkg_manager {
 		"paru" | "yay" | "pacman" => {
-			run $priv rm -rf ($env.HOME | path join .cache/paru)
-			run $priv rm -rf ($env.HOME | path join .cache/yay)
-			run $priv pacman -Scc --noconfirm
+			run $priv rm -rf ($env.HOME | path join (".cache" | path join $pkg_manager))
+			run $priv rm -rf /var/cache/pacman/pkg/*
 			##Removing orphaned package
 			job spawn { pacman -Qdtq | parse "{name}" | each {|it| ^$pkg_manager -Rns --noconfirm $it.name} }
 			print $"(ansi green)Removing Orphaned packages in the background..."

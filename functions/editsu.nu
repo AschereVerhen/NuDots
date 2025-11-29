@@ -54,7 +54,6 @@ export def edit [path_list: list<string>] {
 		let og_contents = if ($file_create) { "" } else { (open $path | to text) } 
 		let new_contents = (open $buffer_file | to text)
 
-		##Implimenting Atomic Locking system.
 		if not ($og_contents == $new_contents) {	
 			try {
 				open $buffer_file | save --force $path

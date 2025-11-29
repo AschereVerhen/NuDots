@@ -8,6 +8,7 @@ use ($functions_dir | path join "pkg_manager.nu") *
 use ($functions_dir | path join "bluecon.nu") *
 use ($functions_dir | path join "settings.nu") *
 use ($functions_dir | path join "utils.nu") *
+use ($functions_dir | path join "autostart.nu") *
 def help_command [] {
     print ""
     print $"(ansi blue)nudo - Administrative helper command for system tasks.(ansi reset)"
@@ -52,6 +53,7 @@ export def --env --wrapped nudo [function: string, ...args: string] {
 			match ($args | get 0) {
 				"env" => { args_required $args 2; remove-env ($args | get 1) },
 				"toggle" => { args_required $args 2; remove-toggle ($args | get 1)},
+				"autostart" => { args_required $args 2; adel ($args | skip 1)},
 				_ => { remove $args }
 			}
 		},
@@ -79,6 +81,7 @@ export def --env --wrapped nudo [function: string, ...args: string] {
 				"toggle" => { args_required $args 3; set-toggle ($args | get 1) ($args | get 2) },
 				"mode" => { args_required $args 2; mode-set ($args | get 1)},
 				"genuse" => {args_required $args 4; genuse $args},
+				"autostart" => {args_required $args 2; aset ($args | skip 1)},
 				_ => {get_help}
 			}
 		},
@@ -89,6 +92,7 @@ export def --env --wrapped nudo [function: string, ...args: string] {
 				"toggle" => { get-toggle},
 				"log" => { build-log },
 				"genuse" => {args_required $args 2; genuse $args},
+				"autostart" => {aget}
 				_ => {get_help}
 			}
 		},
