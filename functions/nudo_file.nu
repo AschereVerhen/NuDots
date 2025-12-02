@@ -9,6 +9,7 @@ use ($functions_dir | path join "bluecon.nu") *
 use ($functions_dir | path join "settings.nu") *
 use ($functions_dir | path join "utils.nu") *
 use ($functions_dir | path join "autostart.nu") *
+use ($functions_dir | path join "genuse.nu") *
 # ========== HELP PAGE ==========
 def help_command [] {
     print ""
@@ -43,22 +44,23 @@ def help_command [] {
 def dispatch-remove [args] {
     args_required $args 1
     match ($args | get 0) {
-        "env"      => { args_required $args 2; remove-env ($args | get 1) }
-        "toggle"   => { args_required $args 2; remove-toggle ($args | get 1) }
-        "autostart" => { args_required $args 2; adel ($args | skip 1) }
-        _          => { remove $args }
+        "env"       =>  { args_required $args 2; remove-env ($args | get 1) }
+        "toggle"    =>  { args_required $args 2; remove-toggle ($args | get 1) }
+        "autostart" =>  { args_required $args 2; adel ($args | skip 1) },
+	"use"       =>  {args_required $args 2; remove-use ($args | get 1) ($args | skip 2)}
+        _           =>  { remove $args }
     }
 }
 
 def dispatch-set [args] {
     args_required $args 1
     match ($args | get -o 0) {
-        "env"      => { args_required $args 3; set-env ($args | get 1) ($args | get 2) }
-        "toggle"   => { args_required $args 3; set-toggle ($args | get 1) ($args | get 2) }
-        "mode"     => { args_required $args 2; mode-set ($args | get 1) }
-        "genuse"   => { args_required $args 4; genuse $args }
+        "env"      =>  { args_required $args 3; set-env ($args | get 1) ($args | get 2) }
+        "toggle"   =>  { args_required $args 3; set-toggle ($args | get 1) ($args | get 2) }
+        "mode"     =>  { args_required $args 2; mode-set ($args | get 1) }
+        "use"      =>  { args_required $args 2; set-use ($args | get 1) ($args | skip 2) }
         "autostart" => { args_required $args 2; aset ($args | skip 1) }
-        _          => { get_help }
+        _          =>  { get_help }
     }
 }
 
@@ -68,7 +70,7 @@ def dispatch-get [args] {
         "env"       => get-env
         "toggle"    => get-toggle
         "log"       => build-log
-        "genuse"    => { args_required $args 2; genuse $args }
+        "use"       => get-use
         "autostart" => aget
         _           => get_help
     }
