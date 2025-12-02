@@ -80,7 +80,6 @@ export def set-toggle [toggle: string, value: string] {
 	debug_print set-toggle: $toggle_table
 	##$save_file is now in json
 	debug_print set-toggle: Is toggle_table empty? ($toggle_table | is-empty | to text)
-	debug_print set-toggle: Is ($toggle) in toggle_table ? ($toggle in ($toggle_table | table) | to text)
 	
 	if ($toggle_table | is-empty) {
 		debug_print "set-toggle: toggle_table is empty."
@@ -88,6 +87,7 @@ export def set-toggle [toggle: string, value: string] {
 		write-toggle ($toggle_table | append $table_to_append)
 		return
 	}
+	debug_print set-toggle: Is ($toggle) in toggle_table ? ($toggle in ($toggle_table | table) | to text)
 
 	if ($toggle in ($toggle_table | table)) {
 		debug_print set-toggle: desired branch
