@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use ($nu.config-path | path dirname | path join "functions/utils.nu") *
+use ($nu.default-config-dir | path join "functions/utils.nu") *
 
 export def edit [path_list: list<string>] {
 	let editor_found = any_one_of ($env.config.buffer_editor?) ($env.EDITOR?) "nvim" "vim" "nano" "hx" "vi"

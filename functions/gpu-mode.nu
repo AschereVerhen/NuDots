@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-use ($nu.config-path | path dirname | path join "functions/utils.nu") [dependency_check, detect_os, any_one_of, debug_print]
+use ($nu.default-config-dir | path join "functions/utils.nu") [dependency_check, detect_os, any_one_of, debug_print]
 use ($nu.default-config-dir | path join "functions/settings.nu") [get-toggle]
 
 def get_help [] {

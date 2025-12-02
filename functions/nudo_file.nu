@@ -2,7 +2,7 @@
 
 # ========== Load Function Modules ==========
 const functions_dir = ($nu.default-config-dir | path join "functions")
-use ($functions_dir | path join "editsu.nu") * ##Import editsu. MAKE SURE THIS ISNT IN MOD.NU!!!!
+use ($functions_dir | path join "editsu.nu") * 
 use ($functions_dir | path join "gpu-mode.nu") *
 use ($functions_dir | path join "pkg_manager.nu") *
 use ($functions_dir | path join "bluecon.nu") *
@@ -39,9 +39,6 @@ def help_command [] {
 }
 
 # ================= DISPATCH HELPERS =================
-def run_or_help [flag, block] {
-    if ($flag) { do $block } else { help_command }
-}
 
 def dispatch-remove [args] {
     args_required $args 1
