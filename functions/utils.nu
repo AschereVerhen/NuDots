@@ -81,7 +81,8 @@ export def debug_print [...statement: string] {
 	#implimenting a short get_toggle function to ensure utils.nu has no dependencies.
 	let save_file = ($nu.data-dir | path join "toggles");
 	if not ($save_file | path exists) { "" | save -f $save_file }
-	if ((open $save_file | find "DEBUG") | is-empty) {
+	let debug_val = (open $save_file | parse "{toggle}: {value}" | find "DEBUG" | get -o value | get -o 0)
+	if ($debug_val != "1") {
 		return
 	}
 	print $"[DEBUG]: ($statement | str join ' ')"
