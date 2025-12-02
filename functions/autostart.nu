@@ -15,11 +15,11 @@ export def astart [] {
 	let autostart_database = ($nu.data-dir | path join "astart-repo"); ##This is where the list of commands will be stored. More on this in aset.
 	if not ($autostart_database | path exists) {debug_print $"astart: Creating a new autostart database at ($autostart_database).";"" | save -f $autostart_database};
 	##The method of storing: <command>. Lol. Yes, just that. Simple.
-	let commands = (open $autostart_database | parse "{command}" | get command);
+	let commands = (open $autostart_database | from json);
 	#And then just make a background process for the program IFF it does not already work. We will create a lock for this. in /run/nushell/astart.
 	$commands | each {
 	|command|
-		let lock_file = ($lockfile_dir | path join ($command | split row " " | first))
+		let lock_file = ($lockfile_dir | path join ($command | hash sha256))
 		if ($lock_file | path exists) {
 			#do nothing
 			debug_print $"astart: Lockfile: ($lock_file) exists. Will Not start the command: ($command)."
@@ -31,20 +31,6 @@ export def astart [] {
 	} | ignore
 }
 
-export def aset [command: list<string>] {
-	#Firstly, ensure ($nu.data-dir) exists.
-	if not ($nu.data-dir | path exists) {mkdir ($nu.data-dir)};
-	#Then, lets get the database.
-	let autostart_database = ($nu.data-dir | path join "astart-repo");
-	debug_print $"aset: Old database: (open $autostart_database)"
-	#now, we write to this database.
-	debug_print $"aset: Command: ($command | str join ' ')"
-	$"($command | str join ' ')\n" | save -af $autostart_database
-	debug_print $"aset: New database: (open $autostart_database)"
-	#Done. LOL. Do we want to run astart again? sure.
-	astart
-}
-
 export def aget [] {
 	#Firstly, ensure ($nu.data-dir) exists.
 	if not ($nu.data-dir | path exists) {mkdir ($nu.data-dir)};
@@ -52,9 +38,24 @@ export def aget [] {
 	let autostart_database = ($nu.data-dir | path join "astart-repo");
 	if not ($autostart_database | path exists) {"" | save -f $autostart_database};
 	#And now parsing game.
-	open $autostart_database | parse "{Command}"
+	open $autostart_database | from json
 }
 
+
+export def aset [command: list<string>] {
+	#Firstly, ensure ($nu.data-dir) exists.
+	if not ($nu.data-dir | path exists) {mkdir ($nu.data-dir)};
+	#Then, lets get the database.
+	let autostart_database = ($nu.data-dir | path join "astart-repo");
+	debug_print $"aset: Old database: (open $autostart_database | from json)"
+	#now, we write to this database.
+	debug_print $"aset: adding Command: ($command | str join ' ')"
+	
+	let new_database = open $autostart_database | from json | append ($command | str join ' ') | to json | save -f $autostart_database
+
+	debug_print $"aset: New database: (open $autostart_database)"
+	astart
+}
 def write-table [tb: list<string>] {
 	if not ($nu.data-dir | path exists) {mkdir ($nu.data-dir)};
 	#Then, lets get the database.
@@ -94,7 +95,7 @@ export def adel [command_or_id: list<string>] {
 		}
 	} #The elements not in id_list will be strings.
 	debug_print $"adel: string_list: ($string_list)"
-	let commands = aget | get Command;
+	let commands = aget;
 	debug_print $"adel: commands: ($commands)"
 	let id_to_string = if ($id_list | is-not-empty) {
 		$id_list | each {|index|
@@ -119,7 +120,7 @@ export def adel [command_or_id: list<string>] {
 			}
 		}
 	};
-	debug_print $"adel: new_commands: ($new_commands)"
+	debug_print $"adel: new_commands: ($new_commands | to text)"
 	write-table $new_commands
 }
 

@@ -80,8 +80,9 @@ export def debug_print [...statement: string] {
 	##we print a debug statement iff DEBUG toggle is set to 1
 	#implimenting a short get_toggle function to ensure utils.nu has no dependencies.
 	let save_file = ($nu.data-dir | path join "toggles");
-	if not ($save_file | path exists) { "" | save -f $save_file }
-	let debug_val = (open $save_file | parse "{toggle}: {value}" | find "DEBUG" | get -o value | get -o 0)
+	if not ($save_file | path exists) { "" | save -f $save_file; return }
+	if (open $save_file | is-empty) {return}
+	let debug_val = (open $save_file | from json | find "DEBUG" | get -o value | get -o 0)
 	if ($debug_val != "1") {
 		return
 	}

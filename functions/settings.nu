@@ -64,35 +64,50 @@ export def remove-env [env_name: string] {
 export def get-toggle [] {
 	let save_file = ($nu.data-dir | path join "toggles")
 	if not ($save_file | path exists) { "" | save -f $save_file}
-	open $save_file | parse "{toggle}: {value}" 
+	open $save_file | from json  
 }
 
 def write-toggle [toggles: list<any>] {
 	let save_file = ($nu.data-dir | path join "toggles")
 	"" | save -f $save_file
-	$toggles | each {|vars| 
-		$"($vars.toggle): ($vars.value)\n" | save --append $save_file
-	} | to text
+	$toggles | to json | save -f $save_file
 }
 
 export def set-toggle [toggle: string, value: string] {
 	let save_file = ($nu.data-dir | path join "toggles")
+	if (open $save_file | is-empty) or not ($save_file | path exists) {"" | save -f $save_file}
+	let toggle_table = (open $save_file | from json)
+	debug_print set-toggle: $toggle_table
+	##$save_file is now in json
+	debug_print set-toggle: Is toggle_table empty? ($toggle_table | is-empty | to text)
+	debug_print set-toggle: Is ($toggle) in toggle_table ? ($toggle in ($toggle_table | table) | to text)
 	
-	if ($toggle in (get-toggle | get toggle)) {
+	if ($toggle_table | is-empty) {
+		debug_print "set-toggle: toggle_table is empty."
+		let table_to_append = [[toggle, value]; [$toggle, $value]];
+		write-toggle ($toggle_table | append $table_to_append)
+		return
+	}
+
+	if ($toggle in ($toggle_table | table)) {
+		debug_print set-toggle: desired branch
 		let new_table = (
-			get-toggle | each {|row| 
+			get-toggle | each {|row|
+				debug_print set-toggle: current toggle: $row.toggle . Desired toggle: $toggle
 				if $row.toggle == $toggle {
+					debug_print set-toggle: new value: $value
 					$row | upsert value $value
 				} else {
+					debug_print set-toggle: not the desired toggle, will not change value.
 					$row
 				}
 			}
 		)
 		write-toggle $new_table
 	} else {
-		let table_c = get-toggle
-		let table_d = [[toggle, value]; [$toggle, $value]];
-		write-toggle ($table_c | append $table_d)
+		debug_print set-toggle: Else branch.
+		let table_to_append = [[toggle, value]; [$toggle, $value]];
+		write-toggle ($toggle_table | append $table_to_append)
 	}
 }
 export def remove-toggle [toggle: string] {

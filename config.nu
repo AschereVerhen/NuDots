@@ -7,7 +7,7 @@ if not ($nu.data-dir | path join "toggles" | path exists) {
 }
 
 ###Sourcing Functions###
-$env.PERSISTENT_TOGGLES = ($nu.data-dir | path join "toggles" | open | parse "{toggle}: {value}")
+$env.PERSISTENT_TOGGLES = ($nu.data-dir | path join "toggles" | open | from json)
 const functions_path = ($nu.config-path | path dirname | path join "functions")
 if not ($functions_path | path exists) {
     mkdir $functions_path

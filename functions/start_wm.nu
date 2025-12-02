@@ -19,6 +19,6 @@ def start_normal_wm_or_startx [wm: any] {
 
 export def wm [] {
 	detect_os linux bsd
-	let window_manager = (get-toggle | find wm | get value? | get 0?)
-	start_normal_wm_or_startx $window_manager ##wms like startx, hyprland, i3 should fall into this branch and further code should not be executed...
+	# let window_manager = (get-toggle | find wm | get value? | get 0?)
+	# start_normal_wm_or_startx $window_manager ##wms like startx, hyprland, i3 should fall into this branch and further code should not be executed...
 }
