@@ -23,13 +23,13 @@ export def get_help [] {
 
 ##Fetchs the custom envs set 
 export def get-env [] {
-	let env_file = ($nu.default-config-dir | path join "functions" | path join "env.nu")
+	let env_file = ($nu.default-config-dir |  path join "env.nu")
 	let envs = (open ($env_file) | parse "$env.{name} = \"{value}\"")
 	$envs
 }
 
 def write-env --env [env_list: list<any>] {
-	const env_file = ($nu.default-config-dir | path join "functions" | path join "env.nu")
+	const env_file = ($nu.default-config-dir | path join "env.nu")
 	"" | save -f $env_file ##Clear the file first.
 	$env_list | each {|var|
 		$"$env.($var.name) = \"($var.value)\"\n" | save --append $env_file

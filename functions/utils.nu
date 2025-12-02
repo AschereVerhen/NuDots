@@ -44,22 +44,6 @@ export def any_one_of [...programs: string] {
 }
 
 
-export def run --wrapped [...command: string] {
-	let span = (metadata $command).span
-	try {
-		^$command	
-	} catch {|e|
-		let error_msg = $e.msg
-		error make {
-			msg: $error_msg
-			label: {
-				text: $"(ansi red)Command: `($command | str join ' ')` failed.",
-				span: $span
-			}
-			exit_code: 1,
-		}
-	}
-}
 export def detect_os [...allowed: string] {
 	##First check if the system is running any type of linux system.
 	let os = ($nu.os-info.name)
@@ -101,4 +85,21 @@ export def debug_print [...statement: string] {
 		return
 	}
 	print $"[DEBUG]: ($statement | str join ' ')"
+}
+export def run --wrapped [...command: string] {
+	let span = (metadata $command).span
+	try {
+		debug_print run: Running command: ...$command
+		^$command	
+	} catch {|e|
+		let error_msg = $e.msg
+		error make {
+			msg: $error_msg
+			label: {
+				text: $"(ansi red)Command: `($command | str join ' ')` failed.",
+				span: $span
+			}
+			exit_code: 1,
+		}
+	}
 }

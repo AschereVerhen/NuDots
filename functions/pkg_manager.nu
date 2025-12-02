@@ -4,11 +4,15 @@ const utils_file = ($nu.default-config-dir | path join "functions/utils.nu")
 use $utils_file *
 
 def figure_out_pkg_manager [] {
-	any_one_of paru yay pacman emerge winget
+	let found = any_one_of paru yay pacman emerge winget
+	debug_print fopm: Found package manager: $found
+	$found
 }
 
 def priv_finder [] {
-	any_one_of sudo doas run0 
+	let found = any_one_of sudo doas run0 
+	debug_print fope: Found Priviledge Escalator: $found
+	$found
 }
 
 export def install [package: list<string>] {
@@ -53,8 +57,12 @@ export def clean [] {
 			run $priv rm -rf ($env.HOME | path join (".cache" | path join $pkg_manager))
 			run $priv rm -rf /var/cache/pacman/pkg/*
 			##Removing orphaned package
-			job spawn { pacman -Qdtq | parse "{name}" | each {|it| ^$pkg_manager -Rns --noconfirm $it.name} }
-			print $"(ansi green)Removing Orphaned packages in the background..."
+			let orphans = (pacman -Qdtq | parse "{name}")
+			if ($orphans | is-not-empty) {
+				job spawn { $orphans | each {|it| ^$pkg_manager -Rns --noconfirm $it.name} }
+				debug_print clean: Removing the following packages: ($orphans | to text)
+				print $"(ansi green)Removing Orphaned packages in the background..."
+			}
 		},
 		"emerge" => {
 			run $priv $pkg_manager --depclean
@@ -118,6 +126,7 @@ export def build-log [] {
             		error_code: 1
         	}
     	}
+	let priv = (priv_finder)
 	dependency_check fzf fd
     	let directories = (
         	fd --search-path /var/tmp/portage -d 2
@@ -125,15 +134,19 @@ export def build-log [] {
         	| parse "/var/tmp/portage/{Family}/{Package}/"
         	| where { |row| $row.Package | is-not-empty }
     	)
+	debug_print build-log: Found directories: ($directories | to text)
 
     	if ($directories | length) == 0 {
-        	return
+        	debug_print build-log: Found no directories. Returning.
+		return
     	} else if ($directories | length) == 1 {
+		debug_print build-log: Found only one directory.
         	let f = ($directories | get 0 | get Family)
         	let p = ($directories | get 0 | get Package)
-        	sudo tail -f $"/var/tmp/portage/($f)/($p)/temp/build.log"
+        	run $priv tail -f $"/var/tmp/portage/($f)/($p)/temp/build.log"
     	} else {
-        	let new_table = (
+        	debug_print build-log: There are multiple directories.
+		let new_table = (
             		$directories
             		| each {|dir| $"($dir.Family)/($dir.Package)" }
         	)
@@ -142,7 +155,12 @@ export def build-log [] {
 			| to text
             		| fzf --prompt "Select a package"
         	)
-        	sudo tail -f $"/var/tmp/portage/($selected_package)/temp/build.log"
+		debug_print build-log: User selected package: ($selected_package | to text)
+		if ($selected_package | to text | is-empty) {
+			debug_print build-log: User must have exitted fzf. Returning.
+			return
+		}
+        	run $priv tail -f $"/var/tmp/portage/($selected_package)/temp/build.log"
     	}
 }
 
