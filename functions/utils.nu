@@ -92,7 +92,7 @@ export def run --wrapped [...command: string] {
 	let span = (metadata $command).span
 	try {
 		debug_print run: Running command: ...$command
-		^$command	
+		run-external ($command | split row ' ') #We are splitting to ensure args too work.
 	} catch {|e|
 		let error_msg = $e.msg
 		error make {

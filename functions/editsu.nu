@@ -54,7 +54,7 @@ export def edit [path_list: list<string>] {
 		}
 
 
-		nu --commands $"^($editor_found) ($buffer_file)" ##Start Editting! Finally.
+		run-external ($editor_found) ($buffer_file) ##Start Editting! Finally.
 
 		let og_contents = if ($file_create) { "" } else { (open $path | to text) } 
 		let new_contents = (open $buffer_file | to text)

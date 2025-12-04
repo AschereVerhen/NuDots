@@ -24,7 +24,7 @@ export def astart [] {
 			#do nothing
 			debug_print $"astart: Lockfile: ($lock_file) exists. Will Not start the command: ($command)."
 		} else {
-			job spawn { ^$command };
+			job spawn { run-external ($command | split row ' ') };
 			debug_print $"astart: Spawned command: ($command)"
 			touch $lock_file ##On reboot /run will be wiped... because tmpfs.
 		}
