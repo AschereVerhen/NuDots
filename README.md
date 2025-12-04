@@ -1,87 +1,78 @@
-# `nudo.nvim` / Nushell System Management Toolkit
-
-A collection of Nushell scripts providing:
-
-* Persistent toggles
-* GPU mode switching
-* Autostart management
-* USE flag editing for Gentoo
-* Package management abstraction (Arch, Gentoo, Winget)
-* fzf-powered directory/history/file navigation
-* Bluetooth helpers
-* Safe file editing with lock system
-* wm/autostart integration
-* Pywal theme automation
-
-This project turns Nushell into a **system administration control panel** with a single command: `nudo`.
+Below is a **GitHub-ready README** version of your project.
+Same material, but formatted with badges, flair, automatic TOC, and visually clean sections for public hosting.
 
 ---
 
-## Table of Contents
+# `nudo` — Nushell System Management Toolkit
 
-1. Overview
-2. Installation
-3. Directory Layout
-4. Architecture
-5. Environment / Toggle System
-6. Package Manager Wrapper
-7. Autostart System
-8. Gentoo Utilities
-9. GPU Mode Switching
-10. fzf Utilities
-11. Bluetooth Client
-12. Window Manager Startup
-13. Pywal Integration
-14. Logging / Debugging
-15. Usage Examples
-16. Roadmap
-17. License
-18. Maintainers & Credits
+> A complete Nushell automation suite providing GPU mode control, autostart supervision, Gentoo USE management, pywal integration, Bluetooth quick connect, and cross-platform package handling — all from one command: `nudo`.
+
+<p align="left">
+  <a href="https://www.nushell.sh/"><img src="https://img.shields.io/badge/Nushell-0.93%2B-blue?logo=nuget" /></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green.svg" /></a>
+  <img src="https://img.shields.io/badge/Linux-Supported-success?logo=linux" />
+  <img src="https://img.shields.io/badge/Gentoo-Optimized-purple?logo=gentoo" />
+  <img src="https://img.shields.io/badge/Arch-Works-lightgrey?logo=arch-linux" />
+</p>
 
 ---
-
----
-
-# 1. Overview
-
-This project is a structured collection of Nushell scripts intended to provide a unified system management interface across multiple Linux environments (Arch, Gentoo, BSD where applicable). It implements a general command:
 
 ```
-nudo <command> [args]
+                           _       
+   _ __   _   _   ___   __| |  ___ 
+  | '__| | | | | / __| / _` | / _ \
+  | |    | |_| | \__ \| (_| ||  __/
+  |_|     \__,_| |___/ \__,_| \___|
 ```
 
-`nudo` acts similarly to:
+The purpose of this toolkit is very simple:
 
-* AUR helper (paru/yay)
-* Gentoo USE flag and env manager
-* Bluetooth quick connector
-* GPU mode selector
-* Autostart process supervisor
+* **One command** — `nudo`
+* **Everything system management**
 
-All implemented using plain Nushell without external daemon services.
-
-The philosophy is:
-
-> Configuration should be declarative, persistent, and discoverable.
-
-Everything is stored inside `$nu.data-dir` and `$nu.default-config-dir` with plain text or JSON formats.
+No more remembering which package manager you’re on, how to edit USE flags, what WM to start, or what GPU power level to switch to. Just manage everything consistently using Nushell functions.
 
 ---
 
-# 2. Installation
+## ⭐ Features
 
-### Prerequisites
+* **Unified control tool**: `nudo <command>`
+* Gentoo USE flag helper (no file editing required)
+* Nvidia GPU performance profile manager
+* Autostart process scheduler (with lock safety)
+* fzf-powered file, directory, and history navigation
+* Safe atomic file editing with privileged fallback
+* Bluetooth device selection + connection
+* Pywal startup automation
+* Window manager startup without `.xinitrc`
+* Cross-distro package installer abstraction
 
-* Nushell ≥ 0.93
-* Linux recommended (limited Windows support for `pkg_manager`)
-* `fzf` recommended
-* `fd` recommended
-* `bat` recommended
-* Optional: `pywal`, `starship`, `bluetoothctl`, `notify-send`
+---
 
-### Clone or copy the files
+## 📦 Table of Contents
 
-Recommended tree:
+* [Installation](#installation)
+* [Project Structure](#project-structure)
+* [Usage](#usage)
+
+  * [Package management](#package-management)
+  * [Toggles](#toggles)
+  * [Autostart](#autostart)
+  * [USE flags (Gentoo)](#use-flags-gentoo)
+  * [GPU mode](#gpu-mode)
+  * [fzf tools](#fzf-tools)
+  * [Bluetooth](#bluetooth)
+  * [Window manager](#window-manager)
+* [Requirements](#requirements)
+* [Debugging](#debugging)
+* [Roadmap](#roadmap)
+* [License](#license)
+
+---
+
+## 🛠 Installation
+
+Clone or copy into your Nushell config directory:
 
 ```
 ~/.config/nushell/
@@ -90,179 +81,115 @@ Recommended tree:
     functions/
 ```
 
-Make sure `config.nu` includes:
+Make sure `functions/mod.nu` gets included in your `config.nu`:
 
 ```nu
 const functions_path = ($nu.config-path | path dirname | path join "functions")
 use $functions_path *
 ```
 
+**Restart Nushell.**
+`nudo` should now be available.
+
 ---
 
-# 3. Directory Layout
+## 🏗 Project Structure
 
 ```
 config.nu
 config.vscode.nu
 
 functions/
-│
-├─ autostart.nu
-├─ bluecon.nu
-├─ editsu.nu
-├─ fzf.nu
-├─ genuse.nu
-├─ gpu-mode.nu
-├─ mod.nu
+├─ utils.nu
 ├─ nudo_file.nu
 ├─ pkg_manager.nu
+├─ genuse.nu
+├─ gpu-mode.nu
+├─ autostart.nu
+├─ fzf.nu
+├─ bluecon.nu
+├─ editsu.nu
 ├─ settings.nu
 ├─ start_wm.nu
-└─ utils.nu
+└─ mod.nu
 ```
 
-### Role Summary
+### Major Modules
 
-| File             | Purpose                              |
-| ---------------- | ------------------------------------ |
-| config.nu        | Terminal startup configuration       |
-| config.vscode.nu | VSCode terminal configuration        |
-| utils.nu         | Core reusable functions              |
-| nudo_file.nu     | Main entrypoint (`nudo`)             |
-| pkg_manager.nu   | Package abstraction layer            |
-| genuse.nu        | Gentoo USE flag controller           |
-| gpu-mode.nu      | NVIDIA performance modes             |
-| autostart.nu     | Per-user autostart manager           |
-| fzf.nu           | Terminal UI and keybinding utilities |
-| editsu.nu        | Safe, atomic file editor             |
-| settings.nu      | Toggles & environment store          |
-| bluecon.nu       | Interactive bluetooth connector      |
-| start_wm.nu      | Window Manager autostart loader      |
-| mod.nu           | Global re-export file                |
+| Module           | Purpose                                   |
+| ---------------- | ----------------------------------------- |
+| `nudo_file.nu`   | Command dispatch system                   |
+| `pkg_manager.nu` | Pacman/paru/yay/emerge/winget abstraction |
+| `genuse.nu`      | Gentoo USE, keyword, env control          |
+| `gpu-mode.nu`    | Manage `nvidia-smi` performance levels    |
+| `autostart.nu`   | Persistent autostart registry             |
+| `fzf.nu`         | Keyboard shortcuts for fzf actions        |
+| `bluecon.nu`     | Interactive bluetooth device selection    |
+| `editsu.nu`      | Safe file editor with locking             |
+| `settings.nu`    | Toggle + environment variable persistence |
 
 ---
 
-# 4. Architecture
+## 🚀 Usage
 
-The project uses several core design ideas:
-
-### 4.1 Command Dispatch System
-
-Commands are routed by `nudo_file.nu`:
+All commands start with:
 
 ```
-nudo install
-nudo set
-nudo get
-nudo remove
-nudo connect
+nudo <command> [...]
 ```
 
-Each is dispatched to a specific module.
+### Package Management
 
-### 4.2 Persistent Data Storage
+#### Install
 
-Data is stored in these locations:
+```
+nudo install neovim
+```
 
-| Purpose         | File                            |
-| --------------- | ------------------------------- |
-| Toggles         | `$nu.data-dir/toggles`          |
-| Autostart       | `$nu.data-dir/astart-repo`      |
-| Custom env vars | `$nu.default-config-dir/env.nu` |
-| GPU settings    | same toggle file                |
+Auto-detects:
 
-Everything stored is either plain text(for custom env vars) or JSON.
+* `paru`
+* `yay`
+* `pacman`
+* `emerge`
+* `winget`
 
-### 4.3 Error Handling System
+#### Update
 
-`utils.nu` implements:
+```
+nudo update
+```
 
-* `dependency_check`
-* `detect_os`
-* `any_one_of`
-* `args_required`
-* `debug_print`
-* `run`
+#### Search
 
-Every command has defensive checks.
+```
+nudo search firefox
+```
 
 ---
 
-# 5. Toggle System
+### Toggles
 
-Toggles are stored in:
-
-```
-$nu.data-dir/toggles   (JSON format)
-```
-
-A toggle is a simple `{ toggle, value }` object.
-
-### Typical toggles
-
-```
-colors
-wm
-wallpath
-DEBUG
-powersave
-balanced
-gaming
-```
-
-### Commands
+Store persistent state values:
 
 ```
 nudo set toggle colors true
+nudo set toggle wallpath ~/Wallpapers/current.jpg
 nudo get toggle
 nudo remove toggle colors
 ```
 
----
-
-# 6. Package Manager Wrapper
-
-Supported systems:
-
-* Arch (paru, yay, pacman)
-* Gentoo (emerge)
-* Windows (winget)
-
-### Commands
+Stored in:
 
 ```
-nudo install <pkg>
-nudo remove <pkg>
-nudo update
-nudo search <term>
-nudo clean
+$nu.data-dir/toggles
 ```
-
-### Design
-
-`pkg_manager.nu`:
-
-* Detects package manager automatically
-* Privilege elevation (sudo/doas/run0)
-* Cross-platform code
 
 ---
 
-# 7. Autostart System
+### Autostart
 
-Autostart commands are stored in:
-
-```
-$nu.data-dir/astart-repo   (JSON list)
-```
-
-### Features
-
-* Lock files prevent duplicate process start
-* Spawned using background jobs
-* Automatically executed on shell launch
-
-### Commands
+Add autostart commands:
 
 ```
 nudo set autostart "fastfetch --config examples/10"
@@ -270,37 +197,44 @@ nudo get autostart
 nudo remove autostart 0
 ```
 
+On every start:
+
+* Commands are checked
+* Commands run **once** using lock files in `/tmp/nudo/astart`
+
 ---
 
-# 8. Gentoo Utilities (`genuse.nu`)
+### USE Flags (Gentoo)
 
-Full USE flag management without editing `/etc/portage` by hand.
-
-### Commands
+#### Add USE flags
 
 ```
-nudo set use dev-libs/openssl ssl asm
-nudo get use
+nudo set use dev-libs/openssl asm ssl
+```
+
+#### Remove
+
+```
 nudo remove use dev-libs/openssl
 ```
 
-Also supports:
+#### View all USE flags
 
 ```
-keyword
-env
+nudo get use
 ```
+
+Files written to:
+
+* `/etc/portage/package.use`
+* `/etc/portage/package.accept_keywords`(wip)
+* `/etc/portage/package.env`(wip)
 
 ---
 
-# 9. GPU Mode Switching (`gpu-mode.nu`)
+### GPU Mode
 
-Requires:
-
-* `nvidia-smi`
-* Toggles configured (powersave, balanced, gaming)
-
-### Usage
+Switch Nvidia GPU performance profile:
 
 ```
 nudo set mode powersave
@@ -308,82 +242,97 @@ nudo set mode balanced
 nudo set mode gaming
 ```
 
-Modes apply persistent:
+Modes read from toggles:
 
 ```
-nvidia-smi -pm 1
-nvidia-smi -lgc X,Y
+powersave
+balanced
+gaming
 ```
 
----
-
-# 10. FZF Utilities (`fzf.nu`)
-
-Provides terminal UI bindings:
-
-* Ctrl+h → history
-* Ctrl+t → directory telescope
-* Ctrl+e → quick edit
-
-### Example
+Example toggle:
 
 ```
-fzf-edit ~/projects
-fzf-directory /etc
+nudo set toggle gaming "1500,4500"
 ```
 
 ---
 
-# 11. Bluetooth (`bluecon.nu`)
+### fzf Tools
 
-Scan, filter, and connect to BT devices.
+Three keybindings (Ctrl-h, Ctrl-t, Ctrl-e):
 
-### Usage
+* History search
+* Directory telescope
+* Quick edit
+
+Direct usage:
+
+```
+fzf-history(Ctrl-h)
+fzf-directory(Ctrl-t)
+fzf-edit(Ctrl-e)
+```
+
+---
+
+### Bluetooth
+
+Connect to device via interactive fuzzy match:
 
 ```
 nudo connect
+```
+
+Or search term:
+
+```
 nudo connect speaker
 ```
 
 ---
 
-# 12. Window Manager Startup
+### Window Manager
 
-```
-wm
-```
-
-* Reads toggle `"wm"`
-* Starts or logs WM command
-* Respects `$XDG_CURRENT_DESKTOP`
-
-Examples:
+Set default WM:
 
 ```
 nudo set toggle wm startx
 nudo set toggle wm hyprland
 ```
 
----
+Launch:
 
-# 13. Pywal Integration
-
-`config.nu` automatically applies pywal colors when:
-
-* toggle `"colors"` is true
-* not running on TTY
-* `wal` exists in PATH
-
-Uses:
-
-* setsid to suppress terminal output
-* notify-send for progress popup
+```
+wm
+```
 
 ---
 
-# 14. Debug Logging
+## ✔ Requirements
 
-Activate debug mode:
+### Core
+
+* Nushell
+* Linux (most modules)
+* `sudo` or `doas` or `run0`
+
+### Optional (recommended)
+
+* `fzf`
+* `fd`
+* `bat`
+* `paru` / `yay` / `pacman`
+* `bluetoothctl`
+* `notify-send` (Pre-installed in most distros, except maybe lfs)
+* `pywal`
+* `starship`
+
+---
+
+## 🧩 Debugging
+
+Enable verbose logging:
 
 ```
 nudo set toggle DEBUG 1
@@ -395,77 +344,13 @@ Disable:
 nudo set toggle DEBUG 0
 ```
 
-Prints `[DEBUG]` output for all functions that call `debug_print`.
-
----
-
-# 15. Usage Examples
-
-### Install a package
+All debug messages print with:
 
 ```
-nudo install neovim
-```
-
-### Search for a package
-
-```
-nudo search firefox
-```
-
-### Set Pywal auto mode
-
-```
-nudo set toggle colors true
-nudo set toggle wallpath ~/Pictures/Wallpapers/current.jpg
-```
-
-### Set GPU balanced clocks
-
-```
-nudo set toggle balanced "1500,4500"
-nudo set mode balanced
-```
-
-### Add autostart app
-
-```
-nudo set autostart "fastfetch --config examples/10"
-```
-
-### List USE flags
-
-```
-nudo get use
+[DEBUG]:
 ```
 
 ---
-
-# 16. Roadmap
-
-* Systemd user service for autostart
-* Logging system in `$XDG_STATE_HOME`
-* Pipe-based IPC for `nudo`
-* Plug-in installer (`nudo self update`)
-* Web UI (local, optional)
-* Generate man page
-
----
-
-# 17. License
+## 📄 License
 
 MIT License — see `LICENSE`.
-
----
-
-# 18. Maintainers & Credits
-
-Author: **Aschere Verhen**
-Project language: **Nushell**
-Compatible systems tested: Arch Linux, Gentoo Linux
-
-> Contributions, issues, and feature requests are welcome.
-
----
-
-If you want a **second version** of this README optimized for **GitHub flair**, including badges, ASCII banners, and auto-generated TOC links, just ask.
