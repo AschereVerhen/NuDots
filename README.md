@@ -11,19 +11,9 @@ Same material, but formatted with badges, flair, automatic TOC, and visually cle
   <a href="https://www.nushell.sh/"><img src="https://img.shields.io/badge/Nushell-0.93%2B-blue?logo=nuget" /></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green.svg" /></a>
   <img src="https://img.shields.io/badge/Linux-Supported-success?logo=linux" />
-  <img src="https://img.shields.io/badge/Gentoo-Optimized-purple?logo=gentoo" />
-  <img src="https://img.shields.io/badge/Arch-Works-lightgrey?logo=arch-linux" />
 </p>
 
 ---
-
-```
-                           _       
-   _ __   _   _   ___   __| |  ___ 
-  | '__| | | | | / __| / _` | / _ \
-  | |    | |_| | \__ \| (_| ||  __/
-  |_|     \__,_| |___/ \__,_| \___|
-```
 
 The purpose of this toolkit is very simple:
 
@@ -55,18 +45,17 @@ No more remembering which package manager you’re on, how to edit USE flags, wh
 * [Project Structure](#project-structure)
 * [Usage](#usage)
 
-  * [Package management](#package-management)
-  * [Toggles](#toggles)
-  * [Autostart](#autostart)
-  * [USE flags (Gentoo)](#use-flags-gentoo)
-  * [GPU mode](#gpu-mode)
-  * [fzf tools](#fzf-tools)
-  * [Bluetooth](#bluetooth)
-  * [Window manager](#window-manager)
-* [Requirements](#requirements)
-* [Debugging](#debugging)
-* [Roadmap](#roadmap)
-* [License](#license)
+  * [Package management](#-package-management)
+  * [Toggles](#-toggles)
+  * [Autostart](#-autostart)
+  * [USE flags (Gentoo)](#-use-flags-gentoo)
+  * [GPU mode](#-gpu-mode)
+  * [fzf tools](#-fzf-tools)
+  * [Bluetooth](#-bluetooth)
+  * [Window manager](#-window-manager)
+* [Requirements](#-requirements)
+* [Debugging](#-debugging)
+* [License](#-license)
 
 ---
 
