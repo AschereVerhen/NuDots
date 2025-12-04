@@ -46,7 +46,6 @@ if ($colors and (which wal | is-not-empty) and not ((tty) =~ "tty")) {
 	let user_wall_path = $env.PERSISTENT_TOGGLES | find "wallpath" | get value? | get 0?
 	let wallpath = ( $user_wall_path | default --empty ( "~/Pictures/Wallpapers/.current_wallpaper" | path expand ))
 	job spawn { ^setsid wal -tqi $wallpath | ignore } #dark magic. Basically we are using setsid which says to wall "run.", but it runs not in our tty. hence it cannot output anything to us. usefull for suppressing kitty's @kitty{"ok": true} json blob.
-	notify-send --app-name="Pywal" --urgency=normal "Generating a color scheme..." "Please wait, pywal is generating a color scheme from the terminal..."
 }
 ###End of section###
 

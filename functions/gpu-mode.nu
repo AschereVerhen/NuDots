@@ -55,7 +55,7 @@ export def mode-set [mode: string] {
 			let max_clocks = (get-toggle | find -i gaming | get value? | get 0?)
 			if ($max_clocks | is-empty) {
 				error make {
-					msg: $"(ansi red)Please set a max mode using nudo set toggle.",
+					msg: $"(ansi red)Please set a 'gaming' mode using nudo set toggle.",
 					label: {
 						text: "This command returned null.",
 						span: (metadata $max_clocks).span,
