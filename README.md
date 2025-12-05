@@ -1,7 +1,4 @@
-Below is a **GitHub-ready README** version of your project.
-Same material, but formatted with badges, flair, automatic TOC, and visually clean sections for public hosting.
 
----
 
 # `nudo` — Nushell System Management Toolkit
 
