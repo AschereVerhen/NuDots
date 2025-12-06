@@ -13,8 +13,7 @@ export def astart [] {
 	let lockfile_dir = "/tmp/nudo/astart";
 	if not ($lockfile_dir | path exists) {debug_print $"astart: Creating Directory: ($lockfile_dir)";mkdir $lockfile_dir};
 	let autostart_database = ($nu.data-dir | path join "astart-repo"); ##This is where the list of commands will be stored. More on this in aset.
-	if not ($autostart_database | path exists) {debug_print $"astart: Creating a new autostart database at ($autostart_database).";"" | save -f $autostart_database};
-	##The method of storing: <command>. Lol. Yes, just that. Simple.
+	if not ($autostart_database | path exists) {debug_print $"astart: Creating a new autostart database at ($autostart_database)."; "" | save -f $autostart_database};
 	let commands = (open $autostart_database | from json);
 	#And then just make a background process for the program IFF it does not already work. We will create a lock for this. in /run/nushell/astart.
 	$commands | each {
@@ -23,10 +22,11 @@ export def astart [] {
 		if ($lock_file | path exists) {
 			#do nothing
 			debug_print $"astart: Lockfile: ($lock_file) exists. Will Not start the command: ($command)."
+			return
 		} else {
 			job spawn { run-external ($command | split row ' ') };
 			debug_print $"astart: Spawned command: ($command)"
-			touch $lock_file ##On reboot /run will be wiped... because tmpfs.
+			touch $lock_file ##On reboot /tmp will be wiped... because tmpfs.
 		}
 	} | ignore
 }
@@ -47,13 +47,17 @@ export def aset [command: list<string>] {
 	if not ($nu.data-dir | path exists) {mkdir ($nu.data-dir)};
 	#Then, lets get the database.
 	let autostart_database = ($nu.data-dir | path join "astart-repo");
-	debug_print $"aset: Old database: (open $autostart_database | from json)"
 	#now, we write to this database.
 	debug_print $"aset: adding Command: ($command | str join ' ')"
 	
-	let new_database = open $autostart_database | from json | append ($command | str join ' ') | to json | save -f $autostart_database
+	debug_print "Deciding if the command is in autostart database"
+	if ((open $autostart_database | is-not-empty) and (($command | str join ' ') in (open $autostart_database | from json))) {
+		debug_print "The command is already in autostart database. Returning."
+		return
+	}
+	debug_print "The command is not in autostart database. Adding."
 
-	debug_print $"aset: New database: (open $autostart_database)"
+	let new_database = open $autostart_database | from json | append ($command | str join ' ') | to json | save -f $autostart_database
 	astart
 }
 def write-table [tb: list<string>] {
@@ -72,8 +76,6 @@ def write-table [tb: list<string>] {
 			}
 	})
 	debug_print $"write-table: new database: ($new_database | str join '\n')"
-	#and done. lol. its that easy.
-
 }
 
 export def adel [command_or_id: list<string>] {

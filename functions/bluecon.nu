@@ -5,13 +5,16 @@ use ($nu.default-config-dir | path join "functions/utils.nu") *
 
 def get_devices [] {
 	mut counter = 1
-	while (^bluetoothctl devices | is-empty) and ($counter != 10) {
+	run bluetoothctl scan on #Run it to capture the new, pairable devices.
+	sleep 2sec
+	while ((^bluetoothctl devices | is-empty) and ($counter != 10)) {
 		debug_print $"bluecon: ---Iteration: ($counter)---"
 		print -e $"(ansi red)Error: No devices found during searching phase. Waiting for 10 seconds and trying again\(Tries: ($counter)/10\)"
 		sleep 10sec
 		##Ensure once more
 		run bluetoothctl power on
 		run bluetoothctl scan on
+		sleep 10sec
 		$counter += 1
 	} ##The escape condition will only be true if ^bluetoothctl devices | is-empty returned false
 	if ($counter < 10) {
@@ -29,9 +32,7 @@ def get_devices [] {
 }
 
 export def blueconnect [search_term: string = ""] {
-	##Dependencies check
 	dependency_check bluetoothctl fzf
-	##Dependency check over
 
 	let list_of_devices = (get_devices)
 	mut name_table = []
@@ -65,4 +66,5 @@ export def blueconnect [search_term: string = ""] {
 			exit_code: 255
 		}
 	}
+
 }
