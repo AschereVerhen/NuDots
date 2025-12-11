@@ -7,6 +7,10 @@ def start_normal_wm_or_startx [wm: any] {
 	if ($env.XDG_CURRENT_DESKTOP? | is-not-empty) {
 		return #do not go further
 	}
+	let tty = (tty);
+	if not ($tty | str contains "/dev/tty") {
+		return
+	}
 	let $wm = if ($wm | is-not-empty) {
 		($wm | into string)
 	} else {
