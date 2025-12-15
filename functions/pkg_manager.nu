@@ -165,7 +165,6 @@ export def build-log [] {
 }
 
 export def help_use [] {
-	    print ""
     print $"(ansi blue)nudo use - one stop management of your useflags. (ansi reset)"
     print "---------------------------------------------------------"
     print $"(ansi red)Usage:(ansi reset) nudo use set/get <package_name> flags/keywords/env-file \(only for gentoo.\)"

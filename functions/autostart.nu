@@ -64,21 +64,22 @@ def write-table [tb: list<string>] {
 	if not ($nu.data-dir | path exists) {mkdir ($nu.data-dir)};
 	#Then, lets get the database.
 	let autostart_database = ($nu.data-dir | path join "astart-repo");
-	debug_print $"write-table: old database: (open $autostart_database | str join '\n')"	
+	debug_print $"write-table: old database:"
+	debug_table (open $autostart_database | from json | table)	
 	#Then first erase the old file.
 	"" | save -f $autostart_database
 
 	#then we write the new table.
-	let new_database = ($tb |  each {
-		|cmd|
-			if ($cmd != " ") {
-				$"($cmd)\n" | save -af $autostart_database #Make sure to use -a. append.
-			}
-	})
-	debug_print $"write-table: new database: ($new_database | str join '\n')"
+	let new_database = $tb | to json
+	$new_database | save -f $autostart_database
+	debug_print "New database:"
+	debug_table ($new_database | from json | table)
 }
 
 export def adel [command_or_id: list<string>] {
+	##Firstly, if the table itself is empty then nothing can be removed.
+	if (aget | is-empty) {debug_print "The Autostart Database is empty. Nothing to print. Exitting."; return}
+
 	##Now, the command_or_id can either be a list of string or multiple numbers.
 	let id_list = $command_or_id | each {|command|
 		try {

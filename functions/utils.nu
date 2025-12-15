@@ -76,22 +76,31 @@ export def args_required [args_list: list<string>, args_atleast: int] {
 	}
 }
 
-export def debug_print [...statement: string] {
-	##we print a debug statement iff DEBUG toggle is set to 1
-	#implimenting a short get_toggle function to ensure utils.nu has no dependencies.
+def debugc [...unused: any]: any -> bool {
 	let save_file = ($nu.data-dir | path join "toggles");
-	if not ($save_file | path exists) { "" | save -f $save_file; return }
-	if (open $save_file | is-empty) {return}
+	if not ($save_file | path exists) { "" | save -f $save_file; return false}
+	if (open $save_file | is-empty) {return false}
 	let debug_val = (open $save_file | from json | find "DEBUG" | get -o value | get -o 0)
 	if ($debug_val != "1") {
-		return
+		return false
 	}
+	return true
+}
+
+export def debug_print [...statement: any] {
+	if not (debugc) {return}	
 	print $"[DEBUG]: ($statement | str join ' ')"
 }
+
+export def debug_table [tb: any] {
+	if not (debugc) {return}
+	print $"[DEBUG]: \n($tb)"
+}
+
 export def run --wrapped [...command: string] {
 	let span = (metadata $command).span
 	try {
-		debug_print run: Running command: ...$command
+		debug_print "run: Running command: ...$command"
 		run-external ($command | split row ' ') #We are splitting to ensure args too work.
 	} catch {|e|
 		let error_msg = $e.msg
