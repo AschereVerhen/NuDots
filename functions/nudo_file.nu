@@ -92,7 +92,7 @@ export def --env --wrapped nudo [cmd: string, ...args: string] {
         "connect"  => { detect_os linux; blueconnect ( if not ($args | is-empty) { $args | get 0 } ) }
         "set"      => { dispatch-set $args }
         "get"      => { dispatch-get $args }
-	"list" 	   => { dispatch-get $args},
+	"list" 	   => { list },
 
         _ => {
             help_command
