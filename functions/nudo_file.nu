@@ -24,7 +24,8 @@ def help_command [] {
 	["remove autostart <cmd>", 	"Remove an autostart"],
         ["update [pkg]",                "Update packages"],
         ["search <query>",              "Search packages"],
-        ["clean",                       "Clean caches"],
+	["list", 			"Get all the packages installed on the system currently"],
+	["clean",                       "Clean caches"],
         ["connect [device]",            "Connect bluetooth device"],
         ["set env/toggle <v>",          "Modify env/toggles"],
         ["set mode <mode>",             "Change GPU mode"],
@@ -72,6 +73,7 @@ def dispatch-get [args] {
         "log"       => build-log
         "use"       => get-use
         "autostart" => aget
+	"list" 	    => list
         _           => get_help
     }
 }
@@ -90,6 +92,7 @@ export def --env --wrapped nudo [cmd: string, ...args: string] {
         "connect"  => { detect_os linux; blueconnect ( if not ($args | is-empty) { $args | get 0 } ) }
         "set"      => { dispatch-set $args }
         "get"      => { dispatch-get $args }
+	"list" 	   => { dispatch-get $args},
 
         _ => {
             help_command
