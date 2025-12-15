@@ -107,10 +107,44 @@ export def fzf-edit [pwd: string = ""] {
 	edit [($directories | fzf --preview "bat --color=always {}" --walker-skip=target,proc,sys,dev,.git )]
 }
 
+export def fzf-pictures-init --env [] {
+	$env.config.keybindings ++= [{
+		name: "Show a picture on terminal using kitten protocol",
+		modifier: control,
+		keycode: char_p,
+		mode: emacs,
+		event: [
+			{edit: CutFromLineStart },
+			{edit: InsertString, value: "fzf-pictures "},
+			{edit: Paste},
+			{send: Enter},
+			{edit: Clear},
+		]
+	}]
+}
+
+##Write a picture to terminal Credit: jochumdev. <rene@jochum.dev>
+
+export def fzf-pictures [pwd: string = ""] {
+	dependency_check fzf fd bat kitten 
+	let $pwd = if ($pwd | is-not-empty) {
+		$pwd
+	} else {
+		(pwd)
+	}
+	##Terminal size:
+	let size = (term size)
+
+	let directories = (fd -H --search-path $pwd --type file)
+	kitten i ($directories | find ".jpg" --no-highlight | to text | fzf --walker-skip=target,proc,sys,dev,.git --preview $'kitten icat --clear --transfer-mode=memory --place=$"($size | get columns)x($size | get rows)@0x0" --stdin=no {}')
+}
+
+
 export def init-all --env [] {
 	fzf-history-init
 	fzf-directory-init
 	fzf-edit-init
+	fzf-pictures-init
 }
 
 
