@@ -5,6 +5,7 @@ use nu_plugin::{
     EvaluatedCall,
     PluginCommand,
 };
+use std::io::Read;
 
 use crate::Nudo;
 //Firstly, implimenting the dependency_check program.
@@ -91,7 +92,7 @@ pub fn dependcheck(call: &EvaluatedCall) -> Result<PipelineData, LabeledError> {
                 .with_label(format!("Expected Dependencies: {}, Did not find: {}", deps.join(", "), not_found.join(", ")), call.head)
         )
     } else {
-        return Ok(PipelineData::Empty)
+        return Ok(PipelineData::Empty) //This returns nothing.
     }
 }
 
@@ -108,6 +109,7 @@ impl PluginCommand for DependencyCheck {
     fn signature(&self) -> nu_protocol::Signature {
         Signature::new(self.name())
         .category(Category::Custom("Developer".to_string()))
+        .add_help()
         .rest(
             "Dependencies",
             SyntaxShape::String,
@@ -168,6 +170,7 @@ impl PluginCommand for AnyOneOf {
     fn signature(&self) -> nu_protocol::Signature {
         Signature::new(self.name())
             .category(Category::Custom("Developer".to_string()))
+            .add_help()
             .rest(
                 "Dependencies",
                 SyntaxShape::String,
@@ -183,4 +186,44 @@ impl PluginCommand for AnyOneOf {
         ) -> Result<PipelineData, LabeledError> {
             anyoneof(call)
         }
+}
+
+//Now implimenting detect_os.
+pub struct DetectOs;
+
+pub fn detect_os(call: &EvaluatedCall) -> Result<PipelineData, LabeledError> {
+    let os = std::env::consts::OS;
+    if os != "linux" {
+        return Ok(PipelineData::value(Value::string(os, call.head), None));
+    }
+    //Now, we first of all open /etc/os-release now that we *know* the system is linux.
+    let mut file = std::fs::File::open("/etc/os-release").map_err(|e| LabeledError::new(e.to_string()))?;
+    let mut contents = String::new();
+    let _ = file.read_to_string(&mut contents).map_err(|e| LabeledError::new(e.to_string()))?;
+    let distro: Option<String> = contents.lines().find(|line| line.starts_with("ID=")).and_then(|line| line.split("=").nth(1)).map(|s| s.trim_matches('"').to_string());
+    return Ok(PipelineData::value(Value::string(distro.unwrap_or("Unknown Linux".to_string()), call.head), None));
+}
+
+impl PluginCommand for DetectOs {
+    type Plugin = Nudo;
+    fn name(&self) -> &str {
+        "nudo dev detectos"
+    }
+    fn description(&self) -> &str {
+        "This command detects and returns Your Operating System. And if its Linux Or BSD, it will also return the Distro."
+    }
+    fn signature(&self) -> Signature {
+        Signature::new(self.name())
+            .add_help()
+            .category(Category::Custom("Developer".to_string()))
+    }
+    fn run(
+            &self,
+            _plugin: &Self::Plugin,
+            _engine: &nu_plugin::EngineInterface,
+            call: &EvaluatedCall,
+            _input: PipelineData,
+        ) -> Result<PipelineData, LabeledError> {
+            detect_os(call)
+    }
 }
