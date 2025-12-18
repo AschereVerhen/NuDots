@@ -66,21 +66,21 @@ fn get_bins(call: &EvaluatedCall, paths: Vec<String>) -> Result<Vec<String>, Lab
 }
 pub fn dependcheck(call: &EvaluatedCall) -> Result<PipelineData, LabeledError> {
     let deps: Vec<String> = call.rest(0)?;
-    dbg!("Finding deps: {:?}", &deps);
+    // dbg!("Finding deps: {:?}", &deps);
     let path = get_path_resolved(call)?;
-    dbg!("Got path: {:?}", &path);
+    // dbg!("Got path: {:?}", &path);
     let mut not_found: Vec<String> = vec![];
     let bins = get_bins(call, path)?;
-    dbg!("Got bins: {:?}", &bins);
+    // dbg!("Got bins: {:?}", &bins);
     for dep in deps.iter() {
         match bins.contains(dep) {
             true => {
-                dbg!("Path contains: {}", dep);
+                // dbg!("Path contains: {}", dep);
                 continue;
 
             }
             false => {
-                dbg!("Path does not contain: {}", dep);
+                // dbg!("Path does not contain: {}", dep);
                 not_found.push(dep.to_string());
                 continue;
             }
@@ -135,19 +135,19 @@ pub struct AnyOneOf;
 
 pub fn anyoneof(call: &EvaluatedCall) -> Result<PipelineData, LabeledError> {
     let deps: Vec<String> = call.rest(0)?;
-    dbg!("Finding deps: {:?}", &deps);
+    // dbg!("Finding deps: {:?}", &deps);
     let path = get_path_resolved(call)?;
-    dbg!("Got path: {:?}", &path);
+    // dbg!("Got path: {:?}", &path);
     let bins = get_bins(call, path)?;
-    dbg!("Got bins: {:?}", &bins);
+    // dbg!("Got bins: {:?}", &bins);
     for dep in deps.iter() {
         match bins.contains(dep) {
             true => {
-                dbg!("Path contains: {}", dep);
+                // dbg!("Path contains: {}", dep);
                 return Ok(PipelineData::value(Value::string(dep, call.head), None))
             }
             false => {
-                dbg!("Path does not contain: {}", dep);
+                // dbg!("Path does not contain: {}", dep);
                 continue;
             }
         }
@@ -225,5 +225,110 @@ impl PluginCommand for DetectOs {
             _input: PipelineData,
         ) -> Result<PipelineData, LabeledError> {
             detect_os(call)
+    }
+}
+
+pub fn args_required(call: &EvaluatedCall, min_args: u16) -> Result<(), LabeledError> {
+    let arglist: Vec<String> = call.rest(0)?;
+    if arglist.len() < min_args.into() {
+        return Err(
+            LabeledError::new("Minimum Args not matched.")
+                .with_label(format!("Required Args: {}, Found args: {}", min_args, arglist.len()), call.head)
+        )
+    }
+    return Ok(())
+
+}
+
+pub struct ArgsRequired;
+
+impl PluginCommand for ArgsRequired {
+    type Plugin = Nudo;
+    fn name(&self) -> &str {
+        "nudo dev args_required"
+    }
+    fn description(&self) -> &str {
+        "This command detects if the user supplied enough args or not. If not, it errors out early."
+    }
+    fn signature(&self) -> Signature {
+        Signature::new(self.name())
+            .category(Category::Custom("Developer".to_string()))
+            .required("Arg", SyntaxShape::Int, "The Minimum Number of Args")
+            .add_help()
+    }
+    fn run(
+            &self,
+            _plugin: &Self::Plugin,
+            _engine: &nu_plugin::EngineInterface,
+            call: &EvaluatedCall,
+            _input: PipelineData,
+        ) -> Result<PipelineData, LabeledError> {
+        let min_args = call.req(0)?;
+        args_required(call, min_args)?;
+        Ok(PipelineData::Empty)
+    }
+}
+
+
+pub struct Run;
+
+pub fn run(call: &EvaluatedCall, cmd: String, arguments: Vec<String>) -> Result<(), LabeledError> {
+    use std::process::{Command, Stdio};
+    let args;
+    let mut command_raw: String = cmd.to_string();
+    if arguments.len() != 0 {
+        args = arguments
+    } else {
+        let c: Vec<&str> = cmd.split_whitespace().collect();
+        command_raw = c[0].to_string();
+        args = c[1..].into_iter().map(|element| element.to_string()).collect::<Vec<String>>();
+    }
+    let mut command = Command::new(command_raw);
+    command.args(args);
+    command.stdout(Stdio::inherit());
+    command.stdin(Stdio::inherit());
+    command.stderr(Stdio::inherit());
+    match command.output() {
+        Err(e) => {
+            return Err(
+            LabeledError::new(format!("An Error occured: {:?}", e))
+                .with_label("This Command", call.head)
+            )
+        },
+        Ok(_) => return Ok(())
+    }
+}
+
+impl PluginCommand for Run {
+    type Plugin = Nudo;
+    fn name(&self) -> &str {
+        "nudo dev run"
+    }
+    fn description(&self) -> &str {
+        "Runs a command with an args list. And then Provides a labelled Error if it errored out."
+    }
+    fn signature(&self) -> Signature {
+        Signature::new(self.name())
+            .category(Category::Custom("Developer".to_string()))
+            .required("Command", SyntaxShape::String, "The Command to execute")
+            .rest(
+                "Arguments",
+                SyntaxShape::String,
+                "The list of arguments to run the command with."
+            )
+            .add_help()
+            .allows_unknown_args()
+    }
+    fn run(
+            &self,
+            _plugin: &Self::Plugin,
+            _engine: &nu_plugin::EngineInterface,
+            call: &EvaluatedCall,
+            _input: PipelineData,
+        ) -> Result<PipelineData, LabeledError> {
+        let command = call.req(0)?;
+        let arguments = call.rest(1)?;
+        run(call, command, arguments)?;
+        Ok(PipelineData::Empty)
     }
 }

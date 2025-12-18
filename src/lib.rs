@@ -19,6 +19,8 @@ impl Plugin for Nudo {
             Box::new(DependencyCheck),
             Box::new(AnyOneOf),
             Box::new(DetectOs),
+            Box::new(ArgsRequired),
+            Box::new(Run),
         ]
     }
 }
