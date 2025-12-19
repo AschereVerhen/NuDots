@@ -8,8 +8,11 @@ use nu_plugin::{
 
 use crate::Nudo;
 //No need to impliment the raw version of this aswell.
-pub fn args_required(call: &EvaluatedCall, min_args: u16) -> Result<(), LabeledError> {
-    let arglist: Vec<String> = call.rest(0)?;
+pub fn args_required(call: &EvaluatedCall, min_args: u16, input: PipelineData) -> Result<(), LabeledError> {
+    let mut arglist: Vec<String> = call.rest(0)?;
+    for val in input {
+        arglist.push(val.as_str()?.to_string())
+    }
     if arglist.len() < min_args.into() {
         return Err(
             LabeledError::new("Minimum Args not matched.")
@@ -42,10 +45,10 @@ impl PluginCommand for ArgsRequired {
             _plugin: &Self::Plugin,
             _engine: &nu_plugin::EngineInterface,
             call: &EvaluatedCall,
-            _input: PipelineData,
+            input: PipelineData,
         ) -> Result<PipelineData, LabeledError> {
         let min_args = call.req(0)?;
-        args_required(call, min_args)?;
+        args_required(call, min_args, input)?;
         Ok(PipelineData::Empty)
     }
 }

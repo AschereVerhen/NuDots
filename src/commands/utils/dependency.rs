@@ -13,8 +13,11 @@ use crate::{Nudo};
 
 //firstly, get path variable
 
-pub fn dependcheck(call: &EvaluatedCall) -> Result<PipelineData, LabeledError> {
-    let deps: Vec<String> = call.rest(0)?;
+pub fn dependcheck(call: &EvaluatedCall, input: PipelineData) -> Result<PipelineData, LabeledError> {
+    let mut deps: Vec<String> = call.rest(0)?;
+    for val in input {
+        deps.push(val.as_str()?.to_string())
+    }
     let mut not_found: Vec<String> = Vec::new();
     for dep in deps {
         if ! which(&dep).is_ok() {
@@ -62,8 +65,8 @@ impl PluginCommand for DependencyCheck {
         _plugin: &Self::Plugin,
         _engine: &nu_plugin::EngineInterface,
         call: &EvaluatedCall,
-        _input: PipelineData,
+        input: PipelineData,
     ) -> Result<PipelineData, LabeledError> {
-        dependcheck(call)
+        dependcheck(call, input)
     }
 }

@@ -49,7 +49,7 @@ impl PluginCommand for Run {
     fn signature(&self) -> Signature {
         Signature::new(self.name())
             .category(Category::Custom("Developer".to_string()))
-            .required("Command", SyntaxShape::String, "The Command to execute")
+            .optional("Command", SyntaxShape::String, "The Command to execute")
             .rest(
                 "Arguments",
                 SyntaxShape::String,
@@ -57,17 +57,28 @@ impl PluginCommand for Run {
             )
             .add_help()
             .allows_unknown_args()
-            .input_output_type(Type::list(Type::String), Type::Nothing)
+            .input_output_types(vec![
+                (Type::list(Type::String), Type::Nothing),
+                (Type::String, Type::Nothing),
+                (Type::Nothing, Type::Nothing)
+            ])
     }
     fn run(
             &self,
             _plugin: &Self::Plugin,
             _engine: &nu_plugin::EngineInterface,
             call: &EvaluatedCall,
-            _input: PipelineData,
+            input: PipelineData,
         ) -> Result<PipelineData, LabeledError> {
-        let command = call.req(0)?;
-        let arguments = call.rest(1)?;
+        let mut args_stdin = Vec::new();
+        for val in input {
+            args_stdin.push(val.as_str()?.to_string())
+        }
+        let cmd_opt = call.opt(0)?;
+        let command = if args_stdin.len() == 0 && cmd_opt.is_some() {cmd_opt.unwrap()} else {args_stdin[0].clone()};
+        let arguments = if args_stdin.len() == 0 {call.rest(1)?} else {args_stdin[1..].to_vec()};
+        // let command = call.req(0).unwrap_or(args_stdin[0].clone());
+        // let arguments = call.rest(1).unwrap_or(args_stdin[1..].to_vec());
         run(call, command, arguments)?;
         Ok(PipelineData::Empty)
     }

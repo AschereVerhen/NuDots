@@ -21,8 +21,11 @@ pub fn anyoneof_raw(check_deps: &Vec<String>) -> Result<String, MyError> {
     }
 }
 
-pub fn anyoneof(call: &EvaluatedCall) -> Result<PipelineData, LabeledError> {
-    let deps: Vec<String> = call.rest(0)?;
+pub fn anyoneof(call: &EvaluatedCall, input: PipelineData) -> Result<PipelineData, LabeledError> {
+    let mut deps: Vec<String> = call.rest(0)?;
+    for val in input {
+        deps.push(val.as_str()?.to_string())
+    }
     let value = anyoneof_raw(&deps);
     match value {
         Ok(dep) => {
@@ -44,7 +47,7 @@ impl PluginCommand for AnyOneOf {
         "nudo dev anyoneof"
     }
     fn description(&self) -> &str {
-        "Note: This is a developer command\nThis function is there to get any one of the commands listed. It takes in a list of names, gets path, and returns the first program that is in the path from the list."
+        "This function is there to get any one of the commands listed. It takes in a list of names, gets path, and returns the first program that is in the path from the list."
     }
     fn signature(&self) -> nu_protocol::Signature {
         Signature::new(self.name())
@@ -66,8 +69,8 @@ impl PluginCommand for AnyOneOf {
             _plugin: &Self::Plugin,
             _engine: &nu_plugin::EngineInterface,
             call: &EvaluatedCall,
-            _input: PipelineData,
+            input: PipelineData,
         ) -> Result<PipelineData, LabeledError> {
-            anyoneof(call)
+            anyoneof(call, input)
         }
 }
