@@ -1,10 +1,5 @@
 use nu_protocol::{
-    Category,
-    LabeledError,
-    PipelineData,
-    Signature, 
-    SyntaxShape,
-    Value
+    Category, LabeledError, PipelineData, Signature, SyntaxShape, Type, Value
 };
 use nu_plugin::{
     EvaluatedCall,
@@ -64,6 +59,7 @@ impl PluginCommand for AnyOneOf {
     fn signature(&self) -> nu_protocol::Signature {
         Signature::new(self.name())
             .category(Category::Custom("Developer".to_string()))
+            .input_output_type(Type::list(Type::String), Type::String)
             .add_help()
             .rest(
                 "Dependencies",

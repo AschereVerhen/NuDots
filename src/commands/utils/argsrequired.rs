@@ -1,5 +1,5 @@
 use nu_protocol::{
-    Category, LabeledError, PipelineData, Signature, SyntaxShape
+    Category, LabeledError, PipelineData, Signature, SyntaxShape, Type
 };
 use nu_plugin::{
     EvaluatedCall,
@@ -34,6 +34,7 @@ impl PluginCommand for ArgsRequired {
         Signature::new(self.name())
             .category(Category::Custom("Developer".to_string()))
             .required("Arg", SyntaxShape::Int, "The Minimum Number of Args")
+            .input_output_type(Type::Int, Type::Nothing)
             .add_help()
     }
     fn run(

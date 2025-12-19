@@ -10,22 +10,67 @@ use crate::Nudo;
 
 pub struct DetectOs;
 
-pub fn detect_os_raw() -> Result<String, Box<dyn std::error::Error>> {
-    let os = std::env::consts::OS;
-    if os != "linux" {
-        return Ok(os.to_string());
+#[derive(Debug)]
+pub enum Distro {
+    Arch,
+    Gentoo,
+    Debian,
+    RedHat,
+    Suse,
+    NixOS,
+    UnknownLinux,
+}
+pub enum OS {
+    Windows, //Windonts
+    MacOS, //Macos Based system
+    FreeBSD,
+    OpenBSD,
+    DragonflyBSD, //dragonfly
+    NetBSD,
+    Linux(Distro),
+    UnknownOS,
+}
+
+impl From<OS> for String {
+    fn from(os: OS) -> Self {
+        match os {
+            OS::Linux(distro) => format!("{:?} Linux", distro),
+            _ => std::env::consts::OS.to_string()
+        }
     }
-    //Now, we first of all open /etc/os-release now that we *know* the system is linux.
-    let mut file = std::fs::File::open("/etc/os-release")?;
-    let mut contents = String::new();
-    use std::io::Read;
-    let _ = file.read_to_string(&mut contents)?;
-    let distro: Option<String> = contents.lines().find(|line| line.starts_with("ID=")).and_then(|line| line.split("=").nth(1)).map(|s| s.trim_matches('"').to_string());
-    Ok(distro.unwrap_or("Unknown Linux".to_string()))
+}
+
+fn detect_distro() -> Distro {
+    let deps: Vec<String> = vec!["pacman".into(), "emerge".into(), "apt".into(), "dnf".into(), "zypper".into(), "nixos-rebuild".into()];
+    let returned = crate::commands::utils::anyoneof::anyoneof_raw(&deps).unwrap_or("Unknown Linux".into());
+    match returned.as_str() {
+        "pacman" => Distro::Arch,
+        "emerge" => Distro::Gentoo,
+        "apt" => Distro::Debian,
+        "dnf" => Distro::RedHat,
+        "zypper" => Distro::Suse,
+        "nixos-rebuild" => Distro::NixOS,
+        _ => Distro::UnknownLinux
+    }
+}
+
+pub fn detect_os_raw() -> OS {
+    let os = std::env::consts::OS;
+    match os {
+        "linux" => OS::Linux(detect_distro()),
+        "windows" => OS::Windows,
+        "macos" => OS::MacOS,
+        "freebsd" => OS::FreeBSD,
+        "dragonfly" => OS::DragonflyBSD,
+        "openbsd" => OS::OpenBSD,
+        "netbsd" => OS::NetBSD,
+        _ => OS::UnknownOS,
+    }
+    
 }
 
 fn detect_os(call: &EvaluatedCall) -> Result<PipelineData, LabeledError> {
-    let os = detect_os_raw().map_err(|e| LabeledError::new(e.to_string()))?;
+    let os = detect_os_raw();
     return Ok(PipelineData::value(Value::string(os, call.head), None));
 }
 

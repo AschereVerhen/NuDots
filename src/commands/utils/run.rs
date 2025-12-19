@@ -1,5 +1,5 @@
 use nu_protocol::{
-    Category, LabeledError, PipelineData, Signature, SyntaxShape
+    Category, LabeledError, PipelineData, Signature, SyntaxShape, Type
 };
 use nu_plugin::{
     EvaluatedCall,
@@ -17,7 +17,7 @@ pub fn run(call: &EvaluatedCall, cmd: String, arguments: Vec<String>) -> Result<
     if arguments.len() != 0 {
         args = arguments
     } else {
-        let c: Vec<&str> = cmd.split_whitespace().collect();
+        let c: Vec<&str> = cmd.split_whitespace().collect(); //If the cmd itself is: "/usr/bin/foo bar bazz", convert it into "/usr/bin/foo", ["foo", "bar"].
         command_raw = c[0].to_string();
         args = c[1..].into_iter().map(|element| element.to_string()).collect::<Vec<String>>();
     }
@@ -57,6 +57,7 @@ impl PluginCommand for Run {
             )
             .add_help()
             .allows_unknown_args()
+            .input_output_type(Type::list(Type::String), Type::Nothing)
     }
     fn run(
             &self,

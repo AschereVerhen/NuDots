@@ -1,5 +1,5 @@
 use nu_protocol::{
-    Category, LabeledError, PipelineData, Signature, SyntaxShape
+    Category, LabeledError, PipelineData, Signature, SyntaxShape, Type
 };
 use nu_plugin::{
     EvaluatedCall,
@@ -143,6 +143,7 @@ impl PluginCommand for DependencyCheck {
     fn signature(&self) -> nu_protocol::Signature {
         Signature::new(self.name())
         .category(Category::Custom("Developer".to_string()))
+        .input_output_type(Type::list(Type::String), Type::Nothing)
         .add_help()
         .rest(
             "Dependencies",
