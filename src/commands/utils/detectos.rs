@@ -66,7 +66,6 @@ pub fn detect_os_raw() -> OS {
         "netbsd" => OS::NetBSD,
         _ => OS::UnknownOS,
     }
-    
 }
 
 fn detect_os(call: &EvaluatedCall) -> Result<PipelineData, LabeledError> {

@@ -10,24 +10,70 @@ use crate::Nudo;
 use crate::commands::utils::detectos::{OS, Distro, detect_os_raw};
 use crate::commands::utils::anyoneof::anyoneof_raw;
 pub struct Install;
+#[allow(dead_code)]
+pub enum Manager {
+    Paru,
+    Yay,
+    Pacman,
+    Emerge,
+    Zypper,
+    Dnf,
+    Nix,
+    Apt,
+    Winget,
+    Scoop,
+    Brew,
+    Pkg, //FreeBSD & DragonFly
+    PkgAdd, //OpenBSD
+    PkgSrc, //NetBSD
+}
+
+impl Manager {
+    fn req_sudo(&self) -> bool {
+        ! matches!(self, Manager::Paru | Manager::Yay)
+    }
+}
+use std::fmt;
+impl fmt::Display for Manager {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            Manager::Paru => "paru",
+            Manager::Yay => "yay",
+            Manager::Pacman => "pacman",
+            Manager::Emerge => "emerge",
+            Manager::Zypper => "zypper",
+            Manager::Dnf => "dnf",
+            Manager::Nix => "nix",
+            Manager::Apt => "apt",
+            Manager::Winget => "winget",
+            Manager::Scoop => "scoop",
+            Manager::Brew => "brew",
+            Manager::Pkg => "pkg",
+            Manager::PkgAdd => "pkg_add",
+            Manager::PkgSrc => "pkgsrc",
+        };
+        write!(f, "{s}")
+    }
+}
 
 pub fn install(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: bool) -> Result<(), LabeledError> {
     let pkg_args: Vec<&str>;//Note, we need not handle the arguments from user through allows_unknown_args. That will be
     //Automatically handled in packages's expansion.
-    let manager: String;
+    let manager: Manager;
 
     match os {
         OS::Linux(Distro::Arch) => {
             let pkg_manage_list = vec!["paru".to_string(), "yay".to_string(), "pacman".to_string()];
-            if let Ok(value) = anyoneof_raw(&pkg_manage_list) {
-                manager = value;
-            } else {
-                return Err(
-                    LabeledError::new("Your system is detected as an arch-based system; but pacman is not found.")
-                        .with_label("Dependency Check Failed", call.head)
-                        .with_help("Maybe add pacman to the PATH if it wasnt or install it?")
-                )
-            }
+                manager = match anyoneof_raw(&pkg_manage_list) {
+                    Ok(val) if val == "paru".to_string() => Manager::Paru,
+                    Ok(val) if val == "yay".to_string() => Manager::Yay,
+                    Ok(val) if val == "pacman".to_string() => Manager::Pacman,
+                    _ => return Err(
+                        LabeledError::new("Your system is detected as an arch-based system; but pacman is not found.")
+                            .with_label("Dependency Check Failed", call.head)
+                            .with_help("Maybe add pacman to the PATH if it wasnt or install it?")
+                    )
+                };
             if no_confirm {
                 pkg_args = vec!["-S", "--noconfirm"]
             } else {
@@ -35,7 +81,7 @@ pub fn install(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: 
             }
         },
         OS::Linux(Distro::Gentoo) => {
-            manager = "emerge".to_string();
+            manager = Manager::Emerge;
             if no_confirm{
                 pkg_args = vec!["--quiet", "--verbose"]
             } else {
@@ -50,7 +96,7 @@ pub fn install(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: 
     }
     use std::process::{Command, Stdio};
     let mut command;
-    if manager == "pacman" || manager == "emerge" {
+    if manager.req_sudo() {
         let priv_manager_list = vec!["sudo".to_string(), "doas".to_string(), "run0".to_string()];
         if let Ok(val) = anyoneof_raw(&priv_manager_list) {
             command = Command::new(val);
@@ -61,9 +107,9 @@ pub fn install(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: 
                     .with_help("Maybe install either one of sudo, doas, run0?")
             );
         }
-        command.arg(manager);
+        command.arg(manager.to_string());
     } else {
-        command = Command::new(manager);
+        command = Command::new(manager.to_string());
     }
     command.args(pkg_args); //Add arguments
     command.args(packages); //Add packages

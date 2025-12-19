@@ -9,25 +9,19 @@ use nu_plugin::{
 use crate::Nudo;
 
 pub struct AnyOneOf;
-use crate::commands::utils::dependency::{get_path_resolved_raw, get_bins_raw};
 use crate::errors::MyError;
+use which::which;
 pub fn anyoneof_raw(check_deps: &Vec<String>) -> Result<String, MyError> {
-    let path = get_path_resolved_raw()?;
-    // dbg!("Got path: {:?}", &path);
-    let bins = get_bins_raw(path)?;
-    // dbg!("Got bins: {:?}", &bins);
-    for dep in check_deps.iter() {
-        match bins.contains(dep) {
-            true => {
-                // dbg!("Path contains: {}", dep);
-                return Ok(dep.clone())
-            }
-            false => {
-                // dbg!("Path does not contain: {}", dep);
-                continue;
-            }
+    check_deps.into_iter().map(|program| {
+        if let Err(_) = which(program) {
+            ()
         }
-    }
+        return Ok::<String, MyError>(
+            program.to_string()
+        )
+    }).next();
+
+    
     return Err(MyError::DependencyNotSatisfied)
 }
 
@@ -59,7 +53,11 @@ impl PluginCommand for AnyOneOf {
     fn signature(&self) -> nu_protocol::Signature {
         Signature::new(self.name())
             .category(Category::Custom("Developer".to_string()))
-            .input_output_type(Type::list(Type::String), Type::String)
+            .input_output_types(vec![
+                (Type::list(Type::String), Type::Nothing),
+                (Type::String, Type::Nothing),
+                (Type::Nothing, Type::Nothing)
+            ])
             .add_help()
             .rest(
                 "Dependencies",
