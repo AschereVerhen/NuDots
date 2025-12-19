@@ -4,52 +4,33 @@ use nu_plugin::{
     PluginCommand,
 };
 use nu_protocol::{
-    Category, LabeledError, PipelineData, Signature, SyntaxShape, Type
+    Category, LabeledError, PipelineData, Signature, Type
 };
 use crate::Nudo;
 use crate::commands::utils::detectos::{OS, detect_os_raw};
-pub struct Install;
+pub struct Clean;
 use crate::commands::pkg_manager::lib::{PkgOp, create_command};
 
 
 pub fn install(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: bool) -> Result<(), LabeledError> {
-    create_command(call, packages, os, no_confirm, PkgOp::Install)
+    create_command(call, packages, os, no_confirm, PkgOp::CleanCache)
 } 
 
-impl PluginCommand for Install {
+impl PluginCommand for Clean {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo pkg install" //Installation.
+        "nudo pkg clean" //Installation.
     }
     fn description(&self) -> &str {
-        "Allows you to install packages os-agnostically"
+        "Allows you to clean your system os-agnostically"
     }
     fn signature(&self) -> Signature {
         Signature::new(self.name())
             .category(Category::Custom("Package Management".to_string()))
-            .rest(
-                "Packages",
-                SyntaxShape::String,
-                "The Packages to install."
-            )
             .add_help()
             .switch("yes", "Skip Confirmation", Some('y'))
             .input_output_type(Type::Any, Type::Nothing) //Takes in anything; returns nothing.
             .allows_unknown_args() //Allow people to pass pkg_manager-specific flags, like --one-shot in emerge or --overwrite="*" in pacman.
-    }
-    fn examples(&self) -> Vec<nu_protocol::Example<'_>> {
-        vec![
-            nu_protocol::Example {
-                example: "nudo pkg install hyprland qs emerge",
-                description: "Easily install packages without having to memorize your distro's flags.",
-                result: None,
-            },
-            nu_protocol::Example {
-                example: "['waybar', 'startx', 'bluetoothctl'] | nudo pkg install",
-                description: "Also takes in from stdin.",
-                result: None,
-            }
-        ]
     }
     fn run(
             &self,

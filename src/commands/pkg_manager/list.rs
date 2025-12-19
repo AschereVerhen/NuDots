@@ -4,52 +4,30 @@ use nu_plugin::{
     PluginCommand,
 };
 use nu_protocol::{
-    Category, LabeledError, PipelineData, Signature, SyntaxShape, Type
+    Category, LabeledError, PipelineData, Signature, Type
 };
 use crate::Nudo;
 use crate::commands::utils::detectos::{OS, detect_os_raw};
-pub struct Install;
+pub struct ListPkg;
 use crate::commands::pkg_manager::lib::{PkgOp, create_command};
-
-
-pub fn install(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: bool) -> Result<(), LabeledError> {
-    create_command(call, packages, os, no_confirm, PkgOp::Install)
+pub fn list(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: bool) -> Result<(), LabeledError> {
+    create_command(call, packages, os, no_confirm, PkgOp::ListInstalled)
 } 
 
-impl PluginCommand for Install {
+impl PluginCommand for ListPkg {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo pkg install" //Installation.
+        "nudo pkg list" //Installation.
     }
     fn description(&self) -> &str {
-        "Allows you to install packages os-agnostically"
+        "Allows you to list all the packages installed on your system os-agnostically"
     }
     fn signature(&self) -> Signature {
         Signature::new(self.name())
             .category(Category::Custom("Package Management".to_string()))
-            .rest(
-                "Packages",
-                SyntaxShape::String,
-                "The Packages to install."
-            )
             .add_help()
-            .switch("yes", "Skip Confirmation", Some('y'))
-            .input_output_type(Type::Any, Type::Nothing) //Takes in anything; returns nothing.
+            .input_output_type(Type::Nothing, Type::Nothing) //Takes in anything; returns nothing.
             .allows_unknown_args() //Allow people to pass pkg_manager-specific flags, like --one-shot in emerge or --overwrite="*" in pacman.
-    }
-    fn examples(&self) -> Vec<nu_protocol::Example<'_>> {
-        vec![
-            nu_protocol::Example {
-                example: "nudo pkg install hyprland qs emerge",
-                description: "Easily install packages without having to memorize your distro's flags.",
-                result: None,
-            },
-            nu_protocol::Example {
-                example: "['waybar', 'startx', 'bluetoothctl'] | nudo pkg install",
-                description: "Also takes in from stdin.",
-                result: None,
-            }
-        ]
     }
     fn run(
             &self,
@@ -68,7 +46,7 @@ impl PluginCommand for Install {
         packages.extend(packages_stdin); //Now we will not use packages_stdin.
         let no_confirm:bool  = call.has_flag("yes")?;
         let os = detect_os_raw();
-        install(call, packages, os, no_confirm)?;
+        list(call, packages, os, no_confirm)?;
         Ok(PipelineData::Empty)
     }
 }

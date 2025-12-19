@@ -8,21 +8,20 @@ use nu_protocol::{
 };
 use crate::Nudo;
 use crate::commands::utils::detectos::{OS, detect_os_raw};
-pub struct Install;
+pub struct Uninstall;
 use crate::commands::pkg_manager::lib::{PkgOp, create_command};
+pub fn uninstall(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: bool) -> Result<(), LabeledError> {
+    create_command(call, packages, os, no_confirm, PkgOp::Uninstall)
 
-
-pub fn install(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: bool) -> Result<(), LabeledError> {
-    create_command(call, packages, os, no_confirm, PkgOp::Install)
 } 
 
-impl PluginCommand for Install {
+impl PluginCommand for Uninstall {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo pkg install" //Installation.
+        "nudo pkg uninstall" //Installation.
     }
     fn description(&self) -> &str {
-        "Allows you to install packages os-agnostically"
+        "Allows you to uninstall packages os-agnostically"
     }
     fn signature(&self) -> Signature {
         Signature::new(self.name())
@@ -30,7 +29,7 @@ impl PluginCommand for Install {
             .rest(
                 "Packages",
                 SyntaxShape::String,
-                "The Packages to install."
+                "The Packages to uninstall."
             )
             .add_help()
             .switch("yes", "Skip Confirmation", Some('y'))
@@ -40,12 +39,12 @@ impl PluginCommand for Install {
     fn examples(&self) -> Vec<nu_protocol::Example<'_>> {
         vec![
             nu_protocol::Example {
-                example: "nudo pkg install hyprland qs emerge",
-                description: "Easily install packages without having to memorize your distro's flags.",
+                example: "nudo pkg uninstall hyprland qs emerge",
+                description: "Easily uninstall packages without having to memorize your distro's flags.",
                 result: None,
             },
             nu_protocol::Example {
-                example: "['waybar', 'startx', 'bluetoothctl'] | nudo pkg install",
+                example: "['waybar', 'startx', 'bluetoothctl'] | nudo pkg uninstall",
                 description: "Also takes in from stdin.",
                 result: None,
             }
@@ -68,7 +67,7 @@ impl PluginCommand for Install {
         packages.extend(packages_stdin); //Now we will not use packages_stdin.
         let no_confirm:bool  = call.has_flag("yes")?;
         let os = detect_os_raw();
-        install(call, packages, os, no_confirm)?;
+        uninstall(call, packages, os, no_confirm)?;
         Ok(PipelineData::Empty)
     }
 }
