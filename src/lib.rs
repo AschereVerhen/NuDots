@@ -24,7 +24,7 @@ impl Plugin for Nudo {
             Box::new(detectos::DetectOs), //nudo dev detectos
             Box::new(argsrequired::ArgsRequired), //nudo dev argsrequired
             Box::new(run::Run), //nudo dev run
-            // Box::new(pkg::Pkg), //nudo pkg
+            Box::new(pkg::Pkg), //nudo pkg
             Box::new(install::Install),
         ]
     }

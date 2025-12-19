@@ -1,35 +1,37 @@
 use nu_plugin::{
     EvaluatedCall,
     EngineInterface,
-    SimplePluginCommand
+    PluginCommand
 };
-use nu_protocol::{Category, Signature, Value};
+use nu_protocol::{Category, PipelineData, Signature, Type};
 use crate::Nudo;
 pub(crate) struct NudoDispatch;
 
-impl SimplePluginCommand for NudoDispatch {
+impl PluginCommand for NudoDispatch {
     type Plugin = Nudo;
     fn name(&self) -> &str {
         "nudo"
     }
     fn description(&self) -> &str {
-        "nudo: Your friendly sysadministration tool for nushell."
+        "nudo: Your friendly system administration tool for nushell."
     }
     // fn examples(&self) -> Vec<nu_protocol::Example<'_>> {
         
     // }
     fn signature(&self) -> Signature {
-        Signature::build(SimplePluginCommand::name(self))
+        Signature::build(self.name())
             .category(Category::Experimental)
+            .input_output_type(Type::Any, Type::Nothing)
+            .add_help()
     }
 
     fn run(
             &self,
             _plugin: &Self::Plugin,
             _engine: &EngineInterface,
-            call: &EvaluatedCall,
-            _input: &Value,
-        ) -> Result<Value, nu_protocol::LabeledError> {
-        Ok(Value::string("Hello World", call.head))
+            _call: &EvaluatedCall,
+            _input: PipelineData,
+        ) -> Result<PipelineData, nu_protocol::LabeledError> {
+            Ok(PipelineData::Empty)
     }
 }

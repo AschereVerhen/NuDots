@@ -43,7 +43,7 @@ impl PluginCommand for DependencyCheck {
         "nudo dev dependcheck"
     }
     fn description(&self) -> &str {
-        "Note: This is a developer command\nThis function is there to ensure dependency check. It takes in a list of names, gets path, and ensures that the command is in path."
+        "This subcommand is there to ensure dependency check. It takes in a list of names, gets path, and ensures that the command is in path."
     }
     fn signature(&self) -> nu_protocol::Signature {
         Signature::new(self.name())
@@ -59,6 +59,20 @@ impl PluginCommand for DependencyCheck {
             SyntaxShape::String,
             "The dependencies to check."
         )
+    }
+    fn examples(&self) -> Vec<nu_protocol::Example<'_>> {
+        vec![
+            nu_protocol::Example {
+                example: "nudo dev dependcheck hyprland qs emerge",
+                description: "Easily check your dependencies.",
+                result: None,
+            },
+            nu_protocol::Example {
+                example: "['waybar', 'startx', 'bluetoothctl'] | nudo dev dependcheck",
+                description: "Also takes in from stdin.",
+                result: None,
+            }
+        ]
     }
     fn run(
         &self,

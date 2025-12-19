@@ -64,6 +64,20 @@ impl PluginCommand for AnyOneOf {
                 "List of Optional Dependencies"
             )
     }
+    fn examples(&self) -> Vec<nu_protocol::Example<'_>> {
+        vec![
+            nu_protocol::Example {
+                example: "nudo dev anyoneof hyprland qs emerge",
+                description: "Easily get which package you have installed.",
+                result: Some(Value::test_string("emerge")),
+            },
+            nu_protocol::Example {
+                example: "['waybar', 'startx', 'bluetoothctl'] | nudo dev dependcheck",
+                description: "Also takes in from stdin.",
+                result: Some(Value::test_string("bluetoothctl")),
+            }
+        ]
+    }
     fn run(
             &self,
             _plugin: &Self::Plugin,

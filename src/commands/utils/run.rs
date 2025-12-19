@@ -1,5 +1,5 @@
 use nu_protocol::{
-    Category, LabeledError, PipelineData, Signature, SyntaxShape, Type
+    Category, Example, LabeledError, PipelineData, Signature, SyntaxShape, Type, Value
 };
 use nu_plugin::{
     EvaluatedCall,
@@ -63,6 +63,20 @@ impl PluginCommand for Run {
                 (Type::Nothing, Type::Nothing)
             ])
     }
+    fn examples(&self) -> Vec<nu_protocol::Example<'_>> {
+        vec![
+            Example {
+                example: "nudo dev run echo -e \"Hello World!\n\"",
+                description: "Run external commands seemlessly, without having to do any arguments gymnastics",
+                result: Some(Value::test_string("Hello World!\n")),
+            },
+            Example {
+                example: "['echo', '-e', 'Hello World!\n'] | nudo dev run",
+                description: "Also Run external commands from a list from stdin.",
+                result: Some(Value::test_string("Hello World!\n"))
+            }
+        ]
+    }
     fn run(
             &self,
             _plugin: &Self::Plugin,
@@ -77,8 +91,6 @@ impl PluginCommand for Run {
         let cmd_opt = call.opt(0)?;
         let command = if args_stdin.len() == 0 && cmd_opt.is_some() {cmd_opt.unwrap()} else {args_stdin[0].clone()};
         let arguments = if args_stdin.len() == 0 {call.rest(1)?} else {args_stdin[1..].to_vec()};
-        // let command = call.req(0).unwrap_or(args_stdin[0].clone());
-        // let arguments = call.rest(1).unwrap_or(args_stdin[1..].to_vec());
         run(call, command, arguments)?;
         Ok(PipelineData::Empty)
     }

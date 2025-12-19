@@ -79,13 +79,20 @@ impl PluginCommand for DetectOs {
         "nudo dev detectos"
     }
     fn description(&self) -> &str {
-        "This command detects and returns Your Operating System. And if its Linux Or BSD, it will also return the Distro."
+        "This subcommand detects and returns Your Operating System. And if its Linux Or BSD, it will also return the Distro."
     }
     fn signature(&self) -> Signature {
         Signature::new(self.name())
             .add_help()
             .input_output_type(Type::Nothing, Type::Nothing)
             .category(Category::Custom("Developer".to_string()))
+    }
+    fn examples(&self) -> Vec<nu_protocol::Example<'_>> {
+        vec![nu_protocol::Example {
+            example: "nudo dev detectos",
+            description: "Easily Know your distro or OS",
+            result: Some(Value::test_string("Arch Linux"))
+        }]
     }
     fn run(
             &self,

@@ -132,7 +132,7 @@ pub fn install(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: 
 impl PluginCommand for Install {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo install" //Installation.
+        "nudo pkg install" //Installation.
     }
     fn description(&self) -> &str {
         "Allows you to install packages os-agnostically"
@@ -149,6 +149,20 @@ impl PluginCommand for Install {
             .switch("yes", "Skip Confirmation", Some('y'))
             .input_output_type(Type::Any, Type::Nothing) //Takes in anything; returns nothing.
             .allows_unknown_args() //Allow people to pass pkg_manager-specific flags, like --one-shot in emerge or --overwrite="*" in pacman.
+    }
+    fn examples(&self) -> Vec<nu_protocol::Example<'_>> {
+        vec![
+            nu_protocol::Example {
+                example: "nudo pkg install hyprland qs emerge",
+                description: "Easily install packages without having to memorize your distro's flags.",
+                result: None,
+            },
+            nu_protocol::Example {
+                example: "['waybar', 'startx', 'bluetoothctl'] | nudo pkg install",
+                description: "Also takes in from stdin.",
+                result: None,
+            }
+        ]
     }
     fn run(
             &self,
