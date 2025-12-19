@@ -12,17 +12,13 @@ pub struct AnyOneOf;
 use crate::errors::MyError;
 use which::which;
 pub fn anyoneof_raw(check_deps: &Vec<String>) -> Result<String, MyError> {
-    check_deps.into_iter().map(|program| {
-        if let Err(_) = which(program) {
-            ()
-        }
-        return Ok::<String, MyError>(
-            program.to_string()
-        )
-    }).next();
+    let value: Option<&String> = check_deps.into_iter().find(|program| which(program).is_ok());
 
-    
-    return Err(MyError::DependencyNotSatisfied)
+    if value.is_none() {
+        return Err(MyError::DependencyNotSatisfied)
+    } else {
+        return Ok(value.unwrap().clone())
+    }
 }
 
 pub fn anyoneof(call: &EvaluatedCall) -> Result<PipelineData, LabeledError> {

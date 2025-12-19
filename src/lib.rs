@@ -17,12 +17,14 @@ impl Plugin for Nudo {
 
     fn commands(&self) -> Vec<Box<dyn nu_plugin::PluginCommand<Plugin = Self>>> {
         vec![
-            Box::new(NudoDispatch),
-            Box::new(dependency::DependencyCheck),
-            Box::new(anyoneof::AnyOneOf),
-            Box::new(detectos::DetectOs),
-            Box::new(argsrequired::ArgsRequired),
-            Box::new(run::Run),
+            Box::new(NudoDispatch), //main nudo
+            Box::new(dev::Dev), //nudo dev
+            Box::new(dependency::DependencyCheck), //nudo dev dependcheck
+            Box::new(anyoneof::AnyOneOf), //nudo dev anyoneof
+            Box::new(detectos::DetectOs), //nudo dev detectos
+            Box::new(argsrequired::ArgsRequired), //nudo dev argsrequired
+            Box::new(run::Run), //nudo dev run
+            // Box::new(pkg::Pkg), //nudo pkg
             Box::new(install::Install),
         ]
     }

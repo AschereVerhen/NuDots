@@ -67,5 +67,3 @@ impl PluginCommand for DependencyCheck {
         dependcheck(call)
     }
 }
-
-
