@@ -10,52 +10,7 @@ use crate::Nudo;
 use crate::commands::utils::detectos::{OS, Distro, detect_os_raw};
 use crate::commands::utils::anyoneof::anyoneof_raw;
 pub struct Install;
-#[allow(dead_code)]
-pub enum Manager {
-    Paru,
-    Yay,
-    Pacman,
-    Emerge,
-    Zypper,
-    Dnf,
-    Nix,
-    Apt,
-    Winget,
-    Scoop,
-    Brew,
-    Pkg, //FreeBSD & DragonFly
-    PkgAdd, //OpenBSD
-    PkgSrc, //NetBSD
-}
-
-impl Manager {
-    fn req_sudo(&self) -> bool {
-        ! matches!(self, Manager::Paru | Manager::Yay)
-    }
-}
-use std::fmt;
-impl fmt::Display for Manager {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let s = match self {
-            Manager::Paru => "paru",
-            Manager::Yay => "yay",
-            Manager::Pacman => "pacman",
-            Manager::Emerge => "emerge",
-            Manager::Zypper => "zypper",
-            Manager::Dnf => "dnf",
-            Manager::Nix => "nix",
-            Manager::Apt => "apt",
-            Manager::Winget => "winget",
-            Manager::Scoop => "scoop",
-            Manager::Brew => "brew",
-            Manager::Pkg => "pkg",
-            Manager::PkgAdd => "pkg_add",
-            Manager::PkgSrc => "pkgsrc",
-        };
-        write!(f, "{s}")
-    }
-}
-
+use crate::commands::pkg_manager::lib::Manager;
 pub fn install(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: bool) -> Result<(), LabeledError> {
     let pkg_args: Vec<&str>;//Note, we need not handle the arguments from user through allows_unknown_args. That will be
     //Automatically handled in packages's expansion.
