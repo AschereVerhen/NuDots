@@ -1,9 +1,10 @@
-use nu_plugin::EvaluatedCall;
+use nu_plugin::{EngineInterface, EvaluatedCall};
 use nu_protocol::LabeledError;
 
-use crate::{commands::utils::{anyoneof::anyoneof_raw, detectos}, errors::MyError};
-
-
+use crate::{
+    commands::utils::{anyoneof::anyoneof_raw, detectos},
+    errors::MyError,
+};
 pub fn detect_priv<'a>() -> Result<&'a str, MyError> {
     let options: Vec<&str> = vec!["sudo", "doas", "run0"];
     let priv_exec = anyoneof_raw(&options)?;
@@ -15,72 +16,75 @@ pub fn detect_archpkg<'a>() -> Result<&'a str, MyError> {
     let detected = anyoneof_raw(&options)?;
     Ok(detected)
 }
-pub fn detect_winpkg<'a>() -> Result<&'a str, MyError> {
-    let options = vec!["winget", "scoop"];
-    let detected = anyoneof_raw(&options)?;
-    Ok(detected)
-}
-pub fn create_command(call: &EvaluatedCall, packages: Vec<String>, os: detectos::OS, no_confirm: bool, mode: PkgOp) -> Result<(), LabeledError> {
-    let manager: Manager = match os.which_manager() {
-        val if val == Manager::Unknown => {
-            return Err(
-                LabeledError::new("Could not detect which PKG Manager you have installed on your system.")
-                    .with_label("This returned Unknown; note that if your pkg manager is not supported this might happen.", call.head)
-                    .with_help("Maybe try installing one for your os?")
-            )
-        },
-        val if val != Manager::Unknown => {
-            val
-        },
-        _ => Manager::Unknown, //This route will not come. Just here to make the compiler shut tf up.
+
+
+pub fn create_command(
+    call: &EvaluatedCall,
+    engine: &EngineInterface,
+    packages: Vec<String>,
+    os: detectos::OS,
+    no_confirm: bool,
+    mode: PkgOp,
+) -> Result<(), LabeledError> {
+    let manager: Manager 
+    = match os.which_manager() {
+            val if val == Manager::Unknown => {
+                return Err(
+                    LabeledError::new("Could not detect which PKG Manager you have installed on your system.")
+                        .with_label("This returned Unknown; note that if your pkg manager is not supported this might happen.", call.head)
+                        .with_help("Maybe try installing one for your os?")
+                )
+            },
+            val if val != Manager::Unknown => {
+                val
+            },
+            _ => Manager::Unknown, //This route will not come. Just here to make the compiler shut tf up.
     };
-    
-    let opspec: OpSpec = match manager.op_spec(mode) {
+
+    let opspec: OpSpec 
+    = match manager.op_spec(mode) {
         Some(op) => op,
-        Option::None => return Err(
-                LabeledError::new("Could not detect which PKG Manager you have installed on your system.")
-                    .with_label("This returned Unknown", call.head)
-                    .with_help("Maybe try installing one for your os?")
+        Option::None => {
+            return Err(LabeledError::new(
+                "Could not detect which PKG Manager you have installed on your system.",
             )
+            .with_label("This returned Unknown", call.head)
+            .with_help("Maybe try installing one for your os?"));
+        }
     };
-    let mut pkg_args: Vec<&str> = opspec.args.to_vec();
+    let mut pkg_args: Vec<String> = opspec.args.iter().map(|element| element.to_string()).collect::<Vec<String>>();
     if no_confirm {
-        pkg_args.extend(opspec.nc_arg.to_vec());
+        pkg_args.extend(opspec.nc_arg.iter().map(|element| element.to_string()).collect::<Vec<String>>());
     }
-    use std::process::{Command, Stdio};
-    let mut command;
-    if manager.req_sudo() {
+    use crate::syscalls::getresuid::userisroot;
+    let command: String; 
+    if ! userisroot() && ! manager.req_sudo() {
         let priv_exec = detect_priv();
         if let Ok(priv_exe) = priv_exec {
-            command = Command::new(priv_exe);
-            command.arg(manager.to_string());
+            command = priv_exe.to_string();
+            pkg_args.insert(0, manager.to_string());
         } else {
-            return Err(
-                LabeledError::new("Could not find any priviledge escalatory Tools in your system.")
-                    .with_label("Dependency Check failed", call.head)
-                    .with_help("Maybe install either one of sudo, doas, run0?")
-            );
+            return Err(LabeledError::new(
+                "Could not find any priviledge escalatory Tools in your system.")
+            .with_label("Dependency Check failed", call.head)
+            .with_help("Maybe install either one of sudo, doas, run0?"));
         }
     } else {
-        command = Command::new(manager.to_string());
+        command = manager.to_string();
     }
-    command.args(pkg_args); //Add arguments
-    command.args(packages); //Add packages
-    command.stdout(Stdio::inherit());
-    command.stdin(Stdio::inherit());
-    command.stderr(Stdio::inherit());
-    let status = command.status().map_err(|e| LabeledError::new(e.to_string()).with_label("Failed to run Package Manager", call.head))?;
-
-    if !status.success() {
-        return Err(
-            LabeledError::new("Command exitted with an non-zero Exit code.")
-                .with_label("Something wrong happened", call.head)
-                .with_help("Common issues might be: Network issue, Or Pkg not found in repo.")
-        )
-    }
-
+    let mut pkg_args = pkg_args.iter().map(|element| element.to_string()).collect::<Vec<String>>();
+    pkg_args.extend(packages);
+    //Now we use run:
+    use crate::commands::utils::run::run;
+    run(call,
+        command,
+        pkg_args,
+        engine
+    )?;
     Ok(())
 }
+
+
 
 #[allow(dead_code)]
 #[derive(PartialEq)]
@@ -91,21 +95,13 @@ pub enum Manager {
     Emerge,
     Zypper,
     Dnf,
-    // Nix, We cannot support NixOS
     Apt,
-    Winget,
-    Scoop,
-    Brew,
-    Pkg, //FreeBSD & DragonFly
-    PkgAdd, //OpenBSD
-    PkgSrc, //NetBSD
-    Unknown
+    Unknown,
 }
-
 
 impl Manager {
     pub fn req_sudo(&self) -> bool {
-        ! matches!(self, Manager::Paru | Manager::Yay)
+        !matches!(self, Manager::Paru | Manager::Yay)
     }
 }
 
@@ -121,12 +117,6 @@ impl fmt::Display for Manager {
             Manager::Dnf => "dnf",
             // Manager::Nix => "nix",
             Manager::Apt => "apt",
-            Manager::Winget => "winget",
-            Manager::Scoop => "scoop",
-            Manager::Brew => "brew",
-            Manager::Pkg => "pkg",
-            Manager::PkgAdd => "pkg_add",
-            Manager::PkgSrc => "pkgsrc",
             Manager::Unknown => "unknown",
         };
         write!(f, "{s}")
@@ -142,8 +132,6 @@ pub enum PkgOp {
     ListInstalled,
 }
 
-
-
 //Be Aware, from now on, repetition is the only god. Do not read the below unless you **Enjoy** pain.
 pub struct OpSpec {
     pub command: &'static str,
@@ -158,499 +146,272 @@ impl Manager {
 
         Some(match (self, op) {
             // ============================================================
-            // ARCH LINUX
+            // ARCH LINUX(Checked. Working.)
             // ============================================================
-
             (Paru, Install) => OpSpec {
                 command: "paru",
                 args: &["-S"],
                 nc_arg: &["--noconfirm"],
-                needs_root: false
+                needs_root: false,
             },
             (Paru, Uninstall) => OpSpec {
                 command: "paru",
                 args: &["-Rns"],
                 nc_arg: &["--noconfirm"],
-                needs_root: false
+                needs_root: false,
             },
             (Paru, Update) => OpSpec {
                 command: "paru",
                 args: &["-Syu"],
                 nc_arg: &["--noconfirm"],
-                needs_root: false
+                needs_root: false,
             },
             (Paru, Search) => OpSpec {
                 command: "paru",
                 args: &["-Ss"],
                 nc_arg: &[],
-                needs_root: false
+                needs_root: false,
             },
             (Paru, CleanCache) => OpSpec {
                 command: "paru",
                 args: &["-Sc"],
                 nc_arg: &["--noconfirm"],
-                needs_root: false
+                needs_root: false,
             },
             (Paru, ListInstalled) => OpSpec {
                 command: "paru",
                 args: &["-Q"],
                 nc_arg: &[],
-                needs_root: false
+                needs_root: false,
             },
 
             (Yay, Install) => OpSpec {
                 command: "yay",
                 args: &["-S"],
                 nc_arg: &["--noconfirm"],
-                needs_root: false
+                needs_root: false,
             },
             (Yay, Uninstall) => OpSpec {
                 command: "yay",
                 args: &["-Rns"],
                 nc_arg: &["--noconfirm"],
-                needs_root: false
+                needs_root: false,
             },
             (Yay, Update) => OpSpec {
                 command: "yay",
                 args: &["-Syu"],
                 nc_arg: &["--noconfirm"],
-                needs_root: false
+                needs_root: false,
             },
             (Yay, Search) => OpSpec {
                 command: "yay",
                 args: &["-Ss"],
                 nc_arg: &[],
-                needs_root: false
+                needs_root: false,
             },
             (Yay, CleanCache) => OpSpec {
                 command: "yay",
                 args: &["-Sc"],
                 nc_arg: &["--noconfirm"],
-                needs_root: false
+                needs_root: false,
             },
             (Yay, ListInstalled) => OpSpec {
                 command: "yay",
                 args: &["-Q"],
                 nc_arg: &[],
-                needs_root: false
+                needs_root: false,
             },
 
             (Pacman, Install) => OpSpec {
                 command: "pacman",
                 args: &["-S"],
                 nc_arg: &["--noconfirm"],
-                needs_root: true
+                needs_root: true,
             },
             (Pacman, Uninstall) => OpSpec {
                 command: "pacman",
                 args: &["-Rns"],
                 nc_arg: &["--noconfirm"],
-                needs_root: true
+                needs_root: true,
             },
             (Pacman, Update) => OpSpec {
                 command: "pacman",
                 args: &["-Syu"],
                 nc_arg: &["--noconfirm"],
-                needs_root: true
+                needs_root: true,
             },
             (Pacman, Search) => OpSpec {
                 command: "pacman",
                 args: &["-Ss"],
                 nc_arg: &[],
-                needs_root: false
+                needs_root: false,
             },
             (Pacman, CleanCache) => OpSpec {
                 command: "pacman",
                 args: &["-Sc"],
                 nc_arg: &["--noconfirm"],
-                needs_root: true
+                needs_root: true,
             },
             (Pacman, ListInstalled) => OpSpec {
                 command: "pacman",
                 args: &["-Q"],
                 nc_arg: &[],
-                needs_root: false
+                needs_root: false,
             },
 
             // ============================================================
             // GENTOO
             // ============================================================
-
             (Emerge, Install) => OpSpec {
                 command: "emerge",
-                args: &[],
+                args: &["--ask"],
                 nc_arg: &["--quiet"],
-                needs_root: true
+                needs_root: true,
             },
             (Emerge, Uninstall) => OpSpec {
                 command: "emerge",
-                args: &["--deselect"],
+                args: &["--unmerge", "--ask"],
                 nc_arg: &["--quiet"],
-                needs_root: true
+                needs_root: true,
             },
             (Emerge, Update) => OpSpec {
                 command: "emerge",
-                args: &["-vuDN", "@world"],
+                args: &["-avuDN", "@world"],
                 nc_arg: &["--quiet"],
-                needs_root: true
+                needs_root: true,
             },
             (Emerge, Search) => OpSpec {
                 command: "emerge",
                 args: &["--search"],
                 nc_arg: &[],
-                needs_root: false
+                needs_root: false,
             },
             (Emerge, CleanCache) => OpSpec {
                 command: "emerge",
                 args: &["--depclean"],
                 nc_arg: &["--quiet"],
-                needs_root: true
+                needs_root: true,
             },
             (Emerge, ListInstalled) => OpSpec {
                 command: "qlist",
                 args: &["-I"],
                 nc_arg: &[],
-                needs_root: false
+                needs_root: false,
             },
 
             // ============================================================
-            // RPM FAMILY
+            // RPM FAMILY(Checked; Working.)
             // ============================================================
-
             (Dnf, Install) => OpSpec {
                 command: "dnf",
                 args: &["install"],
-                nc_arg: &["--yes"],
-                needs_root: true
+                nc_arg: &["-y"],
+                needs_root: true,
             },
             (Dnf, Uninstall) => OpSpec {
                 command: "dnf",
                 args: &["remove"],
-                nc_arg: &["--yes"],
-                needs_root: true
+                nc_arg: &["-y"],
+                needs_root: true,
             },
             (Dnf, Update) => OpSpec {
                 command: "dnf",
                 args: &["upgrade"],
-                nc_arg: &["--yes"],
-                needs_root: true
+                nc_arg: &["-y"],
+                needs_root: true,
             },
             (Dnf, Search) => OpSpec {
                 command: "dnf",
                 args: &["search"],
-                nc_arg: &[""],
-                needs_root: false
+                nc_arg: &[],
+                needs_root: false,
             },
             (Dnf, CleanCache) => OpSpec {
                 command: "dnf",
                 args: &["clean", "all"],
                 nc_arg: &["--yes"],
-                needs_root: true
+                needs_root: true,
             },
             (Dnf, ListInstalled) => OpSpec {
                 command: "dnf",
-                args: &["list", "installed"],
+                args: &["list", "--installed"],
                 nc_arg: &[],
-                needs_root: false
+                needs_root: false,
             },
 
             (Zypper, Install) => OpSpec {
                 command: "zypper",
                 args: &["install"],
                 nc_arg: &["-y"],
-                needs_root: true
+                needs_root: true,
             },
             (Zypper, Uninstall) => OpSpec {
                 command: "zypper",
                 args: &["remove"],
                 nc_arg: &["-y"],
-                needs_root: true
+                needs_root: true,
             },
             (Zypper, Update) => OpSpec {
                 command: "zypper",
                 args: &["update"],
                 nc_arg: &["-y"],
-                needs_root: true
+                needs_root: true,
             },
             (Zypper, Search) => OpSpec {
                 command: "zypper",
                 args: &["search"],
                 nc_arg: &[],
-                needs_root: false
+                needs_root: false,
             },
             (Zypper, CleanCache) => OpSpec {
                 command: "zypper",
                 args: &["clean"],
                 nc_arg: &["-y"],
-                needs_root: true
+                needs_root: true,
             },
             (Zypper, ListInstalled) => OpSpec {
                 command: "zypper",
                 args: &["packages", "--installed-only"],
                 nc_arg: &[],
-                needs_root: false
+                needs_root: false,
             },
-            (Apt, Install) => OpSpec { 
-                command: "apt", 
-                args: &["install"], 
+            (Apt, Install) => OpSpec {
+                command: "apt",
+                args: &["install"],
                 nc_arg: &["-y"],
-                needs_root: true 
-            }, 
-            (Apt, Uninstall) => OpSpec { 
-                command: "apt", 
-                args: &["remove"], 
-                nc_arg: &["-y"],
-                needs_root: true 
-            }, 
-            (Apt, Update) => 
-            OpSpec { 
-                command: "apt", 
-                args: &["update"], 
-                nc_arg: &["-y"],
-                needs_root: true 
-            }, 
-            (Apt, Search) => OpSpec { 
-                command: "apt", 
-                args: &["search"], 
-                nc_arg: &[""],
-                needs_root: false },
-            (Apt, CleanCache) => OpSpec { 
-                command: "apt", 
-                args: &["clean"], 
-                nc_arg: &["-y"],
-                needs_root: true }, 
-            (Apt, ListInstalled) => OpSpec {
-                command: "apt", 
-                args: &["list", "--installed"], 
-                nc_arg: &[""],
-                needs_root: false 
+                needs_root: true,
             },
-            // ============================================================
-            // MACOS
-            // ============================================================
-
-            (Brew, Install) => OpSpec {
-                command: "brew",
-                args: &["install"],
-                nc_arg: &["--yes"],
-                needs_root: false
-            },
-            (Brew, Uninstall) => OpSpec {
-                command: "brew",
-                args: &["uninstall"],
-                nc_arg: &["--yes"],
-                needs_root: false
-            },
-            (Brew, Update) => OpSpec {
-                command: "brew",
-                args: &["update"],
-                nc_arg: &["--yes"],
-                needs_root: false
-            },
-            (Brew, Search) => OpSpec {
-                command: "brew",
-                args: &["search"],
-                nc_arg: &[],
-                needs_root: false
-            },
-            (Brew, CleanCache) => OpSpec {
-                command: "brew",
-                args: &["cleanup"],
-                nc_arg: &["--yes"],
-                needs_root: false
-            },
-            (Brew, ListInstalled) => OpSpec {
-                command: "brew",
-                args: &["list"],
-                nc_arg: &[],
-                needs_root: false
-            },
-
-            // ============================================================
-            // WINDOWS
-            // ============================================================
-
-            (Winget, Install) => OpSpec {
-                command: "winget",
-                args: &["install"],
-                nc_arg: &["--yes"],
-                needs_root: false
-            },
-            (Winget, Uninstall) => OpSpec {
-                command: "winget",
-                args: &["uninstall"],
-                nc_arg: &["--yes"],
-                needs_root: false
-            },
-            (Winget, Update) => OpSpec {
-                command: "winget",
-                args: &["upgrade", "--all"],
-                nc_arg: &["--yes"],
-                needs_root: false
-            },
-            (Winget, Search) => OpSpec {
-                command: "winget",
-                args: &["search"],
-                nc_arg: &[],
-                needs_root: false
-            },
-            (Winget, CleanCache) => OpSpec {
-                command: "winget",
-                args: &["source", "reset"],
-                nc_arg: &["--yes"],
-                needs_root: false
-            },
-            (Winget, ListInstalled) => OpSpec {
-                command: "winget",
-                args: &["list"],
-                nc_arg: &[],
-                needs_root: false
-            },
-
-            (Scoop, Install) => OpSpec {
-                command: "scoop",
-                args: &["install"],
-                nc_arg: &["--yes"],
-                needs_root: false
-            },
-            (Scoop, Uninstall) => OpSpec {
-                command: "scoop",
-                args: &["uninstall"],
-                nc_arg: &["--yes"],
-                needs_root: false
-            },
-            (Scoop, Update) => OpSpec {
-                command: "scoop",
-                args: &["update", "*"],
-                nc_arg: &["--yes"],
-                needs_root: false
-            },
-            (Scoop, Search) => OpSpec {
-                command: "scoop",
-                args: &["search"],
-                nc_arg: &[],
-                needs_root: false
-            },
-            (Scoop, CleanCache) => OpSpec {
-                command: "scoop",
-                args: &["cleanup", "*"],
-                nc_arg: &["--yes"],
-                needs_root: false
-            },
-            (Scoop, ListInstalled) => OpSpec {
-                command: "scoop",
-                args: &["list"],
-                nc_arg: &[],
-                needs_root: false
-            },
-
-            // ============================================================
-            // BSD
-            // ============================================================
-
-            (Pkg, Install) => OpSpec {
-                command: "pkg",
-                args: &["install"],
-                nc_arg: &["--yes"],
-                needs_root: true
-            },
-            (Pkg, Uninstall) => OpSpec {
-                command: "pkg",
-                args: &["delete"],
-                nc_arg: &["--yes"],
-                needs_root: true
-            },
-            (Pkg, Update) => OpSpec {
-                command: "pkg",
-                args: &["upgrade"],
-                nc_arg: &["--yes"],
-                needs_root: true
-            },
-            (Pkg, Search) => OpSpec {
-                command: "pkg",
-                args: &["search"],
-                nc_arg: &["--yes"],
-                needs_root: false
-            },
-            (Pkg, CleanCache) => OpSpec {
-                command: "pkg",
-                args: &["clean"],
-                nc_arg: &["--yes"],
-                needs_root: true
-            },
-            (Pkg, ListInstalled) => OpSpec {
-                command: "pkg",
-                args: &["info"],
-                nc_arg: &["--yes"],
-                needs_root: false
-            },
-
-            (PkgAdd, Install) => OpSpec {
-                command: "pkg_add",
-                args: &[],
-                nc_arg: &["--yes"],
-                needs_root: true
-            },
-            (PkgAdd, Uninstall) => OpSpec {
-                command: "pkg_delete",
-                args: &[],
-                nc_arg: &["--yes"],
-                needs_root: true
-            },
-            (PkgAdd, Update) => OpSpec {
-                command: "pkg_add",
-                args: &["-u"],
-                nc_arg: &["--yes"],
-                needs_root: true
-            },
-            (PkgAdd, Search) => OpSpec {
-                command: "pkg_info",
-                args: &[],
-                nc_arg: &["--yes"],
-                needs_root: false
-            },
-            (PkgAdd, CleanCache) => return None,
-            (PkgAdd, ListInstalled) => OpSpec {
-                command: "pkg_info",
-                args: &[],
-                nc_arg: &[],
-                needs_root: false
-            },
-
-            (PkgSrc, Install) => OpSpec {
-                command: "pkgin",
-                args: &["install"],
-                nc_arg: &["--yes"],
-                needs_root: true
-            },
-            (PkgSrc, Uninstall) => OpSpec {
-                command: "pkgin",
+            (Apt, Uninstall) => OpSpec {
+                command: "apt",
                 args: &["remove"],
-                nc_arg: &["--yes"],
-                needs_root: true
+                nc_arg: &["-y"],
+                needs_root: true,
             },
-            (PkgSrc, Update) => OpSpec {
-                command: "pkgin",
+            (Apt, Update) => OpSpec {
+                command: "apt",
                 args: &["update"],
-                nc_arg: &["--yes"],
-                needs_root: true
+                nc_arg: &["-y"],
+                needs_root: true,
             },
-            (PkgSrc, Search) => OpSpec {
-                command: "pkgin",
+            (Apt, Search) => OpSpec {
+                command: "apt",
                 args: &["search"],
                 nc_arg: &[],
-                needs_root: false
+                needs_root: false,
             },
-            (PkgSrc, CleanCache) => return None,
-            (PkgSrc, ListInstalled) => OpSpec {
-                command: "pkgin",
-                args: &["list"],
+            (Apt, CleanCache) => OpSpec {
+                command: "apt",
+                args: &["clean"],
+                nc_arg: &["-y"],
+                needs_root: true,
+            },
+            (Apt, ListInstalled) => OpSpec {
+                command: "apt",
+                args: &["list", "--installed"],
                 nc_arg: &[],
-                needs_root: false
+                needs_root: false,
             },
-
             (Unknown, _) => return None,
         })
-
     }
 }

@@ -1,7 +1,6 @@
 //This is for pkg management system.
 use nu_plugin::{
-    EvaluatedCall,
-    PluginCommand,
+    EngineInterface, EvaluatedCall, PluginCommand
 };
 use nu_protocol::{
     Category, LabeledError, PipelineData, Signature, SyntaxShape, Type
@@ -10,8 +9,8 @@ use crate::Nudo;
 use crate::commands::utils::detectos::{OS, detect_os_raw};
 pub struct Search;
 use crate::commands::pkg_manager::lib::{PkgOp, create_command};
-pub fn search(call: &EvaluatedCall, packages: Vec<String>, os: OS) -> Result<(), LabeledError> {
-    create_command(call, packages, os, false, PkgOp::Search) //Keep no_confirm false.
+pub fn search(call: &EvaluatedCall, packages: Vec<String>, os: OS, engine: &EngineInterface) -> Result<(), LabeledError> {
+    create_command(call, engine, packages, os, false, PkgOp::Search)
 
 } 
 
@@ -39,7 +38,7 @@ impl PluginCommand for Search {
     fn run(
             &self,
             _plugin: &Self::Plugin,
-            _engine: &nu_plugin::EngineInterface,
+            engine: &nu_plugin::EngineInterface,
             call: &EvaluatedCall,
             _input: PipelineData,
         ) -> Result<PipelineData, LabeledError> {
@@ -47,7 +46,7 @@ impl PluginCommand for Search {
         let search_term: String = call.req(0)?;
 
         let os = detect_os_raw();
-        search(call, vec![search_term], os)?;
+        search(call, vec![search_term], os, engine)?;
         Ok(PipelineData::Empty)
     }
 }

@@ -1,6 +1,7 @@
 
 pub mod commands;
 pub mod errors;
+pub mod syscalls;
 use nu_plugin::Plugin;
 use commands::{
     nudo::NudoDispatch,

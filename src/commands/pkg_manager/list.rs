@@ -1,7 +1,6 @@
 //This is for pkg management system.
 use nu_plugin::{
-    EvaluatedCall,
-    PluginCommand,
+    EngineInterface, EvaluatedCall, PluginCommand
 };
 use nu_protocol::{
     Category, LabeledError, PipelineData, Signature, Type
@@ -10,8 +9,8 @@ use crate::Nudo;
 use crate::commands::utils::detectos::{OS, detect_os_raw};
 pub struct ListPkg;
 use crate::commands::pkg_manager::lib::{PkgOp, create_command};
-pub fn list(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: bool) -> Result<(), LabeledError> {
-    create_command(call, packages, os, no_confirm, PkgOp::ListInstalled)
+pub fn list(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: bool, engine: &EngineInterface) -> Result<(), LabeledError> {
+    create_command(call, engine, packages, os, no_confirm, PkgOp::ListInstalled)
 } 
 
 impl PluginCommand for ListPkg {
@@ -32,7 +31,7 @@ impl PluginCommand for ListPkg {
     fn run(
             &self,
             _plugin: &Self::Plugin,
-            _engine: &nu_plugin::EngineInterface,
+            engine: &nu_plugin::EngineInterface,
             call: &EvaluatedCall,
             input: PipelineData,
         ) -> Result<PipelineData, LabeledError> {
@@ -46,7 +45,7 @@ impl PluginCommand for ListPkg {
         packages.extend(packages_stdin); //Now we will not use packages_stdin.
         let no_confirm:bool  = call.has_flag("yes")?;
         let os = detect_os_raw();
-        list(call, packages, os, no_confirm)?;
+        list(call, packages, os, no_confirm, engine)?;
         Ok(PipelineData::Empty)
     }
 }

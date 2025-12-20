@@ -6,7 +6,7 @@ use nu_plugin::{
     PluginCommand,
 };
 
-use crate::{Nudo, commands::pkg_manager::lib::{Manager, detect_archpkg, detect_winpkg}};
+use crate::{Nudo, commands::pkg_manager::lib::{Manager, detect_archpkg}};
 
 pub struct DetectOs;
 
@@ -20,12 +20,6 @@ pub enum Distro {
     UnknownLinux,
 }
 pub enum OS {
-    Windows, //Windonts
-    MacOS, //Macos Based system
-    FreeBSD,
-    OpenBSD,
-    DragonflyBSD, //dragonfly
-    NetBSD,
     Linux(Distro),
     UnknownOS,
 }
@@ -34,7 +28,7 @@ impl From<OS> for String {
     fn from(os: OS) -> Self {
         match os {
             OS::Linux(distro) => format!("{:?} Linux", distro),
-            _ => std::env::consts::OS.to_string()
+            _ => "unknown".to_string()
         }
     }
 }
@@ -42,15 +36,6 @@ impl From<OS> for String {
 impl OS {
     pub fn which_manager(&self) -> Manager {
         match self {
-            OS::Windows => {
-                let detected = detect_winpkg();
-                match detected {
-                    Ok("winget") => Manager::Winget,
-                    Ok("scoop") => Manager::Scoop,
-                    _ => Manager::Unknown
-                }
-            },
-            OS::MacOS => return Manager::Brew,
             OS::Linux(distro) => {
                 match distro {
                     Distro::Arch => {
@@ -69,10 +54,7 @@ impl OS {
                     Distro::UnknownLinux => Manager::Unknown
                 }
             },
-            OS::FreeBSD | OS::DragonflyBSD => Manager::Pkg,
-            OS::OpenBSD => Manager::PkgAdd,
-            OS::NetBSD => Manager::PkgSrc,
-            OS::UnknownOS => Manager::Unknown
+            _ => Manager::Unknown
         }
     }
 }
@@ -95,12 +77,6 @@ pub fn detect_os_raw() -> OS {
     let os = std::env::consts::OS;
     match os {
         "linux" => OS::Linux(detect_distro()),
-        "windows" => OS::Windows,
-        "macos" => OS::MacOS,
-        "freebsd" => OS::FreeBSD,
-        "dragonfly" => OS::DragonflyBSD,
-        "openbsd" => OS::OpenBSD,
-        "netbsd" => OS::NetBSD,
         _ => OS::UnknownOS,
     }
 }

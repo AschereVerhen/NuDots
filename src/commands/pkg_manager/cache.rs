@@ -1,7 +1,6 @@
 //This is for pkg management system.
 use nu_plugin::{
-    EvaluatedCall,
-    PluginCommand,
+    EngineInterface, EvaluatedCall, PluginCommand
 };
 use nu_protocol::{
     Category, LabeledError, PipelineData, Signature, Type
@@ -12,8 +11,8 @@ pub struct Clean;
 use crate::commands::pkg_manager::lib::{PkgOp, create_command};
 
 
-pub fn install(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: bool) -> Result<(), LabeledError> {
-    create_command(call, packages, os, no_confirm, PkgOp::CleanCache)
+pub fn install(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: bool, engine: &EngineInterface) -> Result<(), LabeledError> {
+    create_command(call, engine, packages, os, no_confirm, PkgOp::CleanCache)
 } 
 
 impl PluginCommand for Clean {
@@ -35,7 +34,7 @@ impl PluginCommand for Clean {
     fn run(
             &self,
             _plugin: &Self::Plugin,
-            _engine: &nu_plugin::EngineInterface,
+            engine: &nu_plugin::EngineInterface,
             call: &EvaluatedCall,
             input: PipelineData,
         ) -> Result<PipelineData, LabeledError> {
@@ -49,7 +48,7 @@ impl PluginCommand for Clean {
         packages.extend(packages_stdin); //Now we will not use packages_stdin.
         let no_confirm:bool  = call.has_flag("yes")?;
         let os = detect_os_raw();
-        install(call, packages, os, no_confirm)?;
+        install(call, packages, os, no_confirm, engine)?;
         Ok(PipelineData::Empty)
     }
 }

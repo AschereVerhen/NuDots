@@ -1,7 +1,6 @@
 //This is for pkg management system.
 use nu_plugin::{
-    EvaluatedCall,
-    PluginCommand,
+    EngineInterface, EvaluatedCall, PluginCommand
 };
 use nu_protocol::{
     Category, LabeledError, PipelineData, Signature, SyntaxShape, Type
@@ -10,8 +9,8 @@ use crate::Nudo;
 use crate::commands::utils::detectos::{OS, detect_os_raw};
 pub struct Update;
 use crate::commands::pkg_manager::lib::{PkgOp, create_command};
-pub fn update(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: bool) -> Result<(), LabeledError> {
-    create_command(call, packages, os, no_confirm, PkgOp::Update)
+pub fn update(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: bool, engine: &EngineInterface) -> Result<(), LabeledError> {
+    create_command(call, engine, packages, os, no_confirm, PkgOp::Update)
 } 
 
 impl PluginCommand for Update {
@@ -52,7 +51,7 @@ impl PluginCommand for Update {
     fn run(
             &self,
             _plugin: &Self::Plugin,
-            _engine: &nu_plugin::EngineInterface,
+            engine: &nu_plugin::EngineInterface,
             call: &EvaluatedCall,
             input: PipelineData,
         ) -> Result<PipelineData, LabeledError> {
@@ -66,7 +65,7 @@ impl PluginCommand for Update {
         packages.extend(packages_stdin); //Now we will not use packages_stdin.
         let no_confirm:bool  = call.has_flag("yes")?;
         let os = detect_os_raw();
-        update(call, packages, os, no_confirm)?;
+        update(call, packages, os, no_confirm, engine)?;
         Ok(PipelineData::Empty)
     }
 }

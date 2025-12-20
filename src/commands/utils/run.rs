@@ -1,16 +1,17 @@
+use std::os::unix::process::CommandExt;
+
 use nu_protocol::{
     Category, Example, LabeledError, PipelineData, Signature, SyntaxShape, Type, Value
 };
 use nu_plugin::{
-    EvaluatedCall,
-    PluginCommand,
+    EngineInterface, EvaluatedCall, PluginCommand
 };
 
 use crate::Nudo;
 
 pub struct Run;
 //No Need to impliment raw version of this. This is all good.
-pub fn run(call: &EvaluatedCall, cmd: String, arguments: Vec<String>) -> Result<(), LabeledError> {
+pub fn run(call: &EvaluatedCall, cmd: String, arguments: Vec<String>, engine: &EngineInterface) -> Result<(), LabeledError> {
     use std::process::{Command, Stdio};
     let args;
     let mut command_raw: String = cmd.to_string();
@@ -26,14 +27,35 @@ pub fn run(call: &EvaluatedCall, cmd: String, arguments: Vec<String>) -> Result<
     command.stdout(Stdio::inherit());
     command.stdin(Stdio::inherit());
     command.stderr(Stdio::inherit());
-    let status = command.status().map_err(|e| LabeledError::new(e.to_string()).with_label("Failed to run Command", call.head))?;
+    
+    unsafe {
+        command.pre_exec(move || {
+            use crate::syscalls::{setpgid::setpgid, kill::Pid};
+            let pid = Pid::from_raw(0);
+            let pgid = Pid::from_raw(0);
+            setpgid(pid, pgid).unwrap();
 
-    if !status.success() {
-        return Err(
-            LabeledError::new("Command failed with an non-zero Exit code.")
-                .with_label("Something wrong happened", call.head)
-        )
+            Ok(())
+        });
     }
+    let mut spawned = command
+        .spawn()
+        .map_err(|e| LabeledError::new(e.to_string())
+            .with_label("Failed to spawn command", call.head))?;
+    let pid = spawned.id();
+    let _signal_guard = engine.register_signal_handler(Box::new({
+        move |_| {
+            use crate::syscalls::kill::{Pid, killpg, Signals};
+            let pid = Pid::from_raw( pid as i32);
+            let sig = Signals::SIGINT;
+            //We want to kill the whole process group. Hence using killpg.
+            killpg(
+                pid,
+                sig,
+            ).unwrap()
+        }
+    }));
+    spawned.wait().unwrap();
 
     return Ok(())
 }
@@ -80,7 +102,7 @@ impl PluginCommand for Run {
     fn run(
             &self,
             _plugin: &Self::Plugin,
-            _engine: &nu_plugin::EngineInterface,
+            engine: &nu_plugin::EngineInterface,
             call: &EvaluatedCall,
             input: PipelineData,
         ) -> Result<PipelineData, LabeledError> {
@@ -91,7 +113,7 @@ impl PluginCommand for Run {
         let cmd_opt = call.opt(0)?;
         let command = if args_stdin.len() == 0 && cmd_opt.is_some() {cmd_opt.unwrap()} else {args_stdin[0].clone()};
         let arguments = if args_stdin.len() == 0 {call.rest(1)?} else {args_stdin[1..].to_vec()};
-        run(call, command, arguments)?;
+        run(call, command, arguments, engine)?;
         Ok(PipelineData::Empty)
     }
 }
