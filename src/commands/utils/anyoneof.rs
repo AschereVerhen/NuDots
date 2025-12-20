@@ -1,6 +1,7 @@
 use nu_protocol::{
     Category, LabeledError, PipelineData, Signature, SyntaxShape, Type, Value
 };
+use std::path::Path;
 use nu_plugin::{
     EvaluatedCall,
     PluginCommand,
@@ -10,14 +11,14 @@ use crate::Nudo;
 
 pub struct AnyOneOf;
 use crate::errors::MyError;
-use which::which;
-pub fn anyoneof_raw(check_deps: &Vec<String>) -> Result<String, MyError> {
-    let value: Option<&String> = check_deps.into_iter().find(|program| which(program).is_ok());
+use which::{which};
+pub fn anyoneof_raw<T: AsRef<Path> + AsRef<std::ffi::OsStr>>(check_deps: &Vec<T>) -> Result<&T, MyError> {
+    let value: Option<&T> = check_deps.into_iter().find(|program| which(program).is_ok());
 
     if value.is_none() {
         return Err(MyError::DependencyNotSatisfied)
     } else {
-        return Ok(value.unwrap().clone())
+        return Ok(value.unwrap())
     }
 }
 

@@ -26,6 +26,11 @@ impl Plugin for Nudo {
             Box::new(run::Run), //nudo dev run
             Box::new(pkg::Pkg), //nudo pkg
             Box::new(install::Install),
+            Box::new(uninstall::Uninstall),
+            Box::new(update::Update),
+            Box::new(list::ListPkg),
+            Box::new(search::Search),
+            Box::new(cache::Clean),
         ]
     }
 }

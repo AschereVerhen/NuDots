@@ -6,7 +6,7 @@ use nu_plugin::{
     PluginCommand,
 };
 
-use crate::Nudo;
+use crate::{Nudo, commands::pkg_manager::lib::{Manager, detect_archpkg, detect_winpkg}};
 
 pub struct DetectOs;
 
@@ -17,7 +17,6 @@ pub enum Distro {
     Debian,
     RedHat,
     Suse,
-    NixOS,
     UnknownLinux,
 }
 pub enum OS {
@@ -40,16 +39,54 @@ impl From<OS> for String {
     }
 }
 
+impl OS {
+    pub fn which_manager(&self) -> Manager {
+        match self {
+            OS::Windows => {
+                let detected = detect_winpkg();
+                match detected {
+                    Ok("winget") => Manager::Winget,
+                    Ok("scoop") => Manager::Scoop,
+                    _ => Manager::Unknown
+                }
+            },
+            OS::MacOS => return Manager::Brew,
+            OS::Linux(distro) => {
+                match distro {
+                    Distro::Arch => {
+                        let detected = detect_archpkg();
+                        match detected {
+                            Ok("paru") => Manager::Paru,
+                            Ok("yay") => Manager::Yay,
+                            Ok("pacman") => Manager::Pacman,
+                            _ => Manager::Unknown,
+                        }
+                    },
+                    Distro::Gentoo => Manager::Emerge,
+                    Distro::Suse => Manager::Zypper,
+                    Distro::RedHat => Manager::Dnf,
+                    Distro::Debian => Manager::Apt,
+                    Distro::UnknownLinux => Manager::Unknown
+                }
+            },
+            OS::FreeBSD | OS::DragonflyBSD => Manager::Pkg,
+            OS::OpenBSD => Manager::PkgAdd,
+            OS::NetBSD => Manager::PkgSrc,
+            OS::UnknownOS => Manager::Unknown
+        }
+    }
+}
+
+
 fn detect_distro() -> Distro {
-    let deps: Vec<String> = vec!["pacman".into(), "emerge".into(), "apt".into(), "dnf".into(), "zypper".into(), "nixos-rebuild".into()];
-    let returned = crate::commands::utils::anyoneof::anyoneof_raw(&deps).unwrap_or("Unknown Linux".into());
-    match returned.as_str() {
+    let deps: Vec<&str> = vec!["pacman", "emerge", "apt", "dnf", "zypper"];
+    let returned = crate::commands::utils::anyoneof::anyoneof_raw(&deps).unwrap_or(&"Unknown Linux");
+    match *returned {
         "pacman" => Distro::Arch,
         "emerge" => Distro::Gentoo,
         "apt" => Distro::Debian,
         "dnf" => Distro::RedHat,
         "zypper" => Distro::Suse,
-        "nixos-rebuild" => Distro::NixOS,
         _ => Distro::UnknownLinux
     }
 }
@@ -96,7 +133,7 @@ impl PluginCommand for DetectOs {
     }
     fn run(
             &self,
-            _plugin: &Self::Plugin,
+            _plugin: &Nudo,
             _engine: &nu_plugin::EngineInterface,
             call: &EvaluatedCall,
             _input: PipelineData,
