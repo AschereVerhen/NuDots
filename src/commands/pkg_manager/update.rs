@@ -16,7 +16,7 @@ pub fn update(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: b
 impl PluginCommand for Update {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo pkg update" //Installation.
+        "nupkg update" //Installation.
     }
     fn description(&self) -> &str {
         "Allows you to update packages os-agnostically"

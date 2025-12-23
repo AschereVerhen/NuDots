@@ -18,7 +18,7 @@ pub fn install(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: 
 impl PluginCommand for Install {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo pkg install" //Installation.
+        "nupkg install" //Installation.
     }
     fn description(&self) -> &str {
         "Allows you to install packages os-agnostically"

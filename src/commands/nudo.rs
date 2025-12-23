@@ -10,10 +10,10 @@ pub(crate) struct NudoDispatch;
 impl PluginCommand for NudoDispatch {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo"
+        "nupkg"
     }
     fn description(&self) -> &str {
-        "nudo: Your friendly system administration tool for nushell."
+        "nupkg: Your friendly package manager for nushell.(linux only)"
     }
     // fn examples(&self) -> Vec<nu_protocol::Example<'_>> {
         
@@ -32,6 +32,7 @@ impl PluginCommand for NudoDispatch {
             _call: &EvaluatedCall,
             _input: PipelineData,
         ) -> Result<PipelineData, nu_protocol::LabeledError> {
+            println!("{}", _engine.get_help()?);
             Ok(PipelineData::Empty)
     }
 }

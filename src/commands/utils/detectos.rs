@@ -89,7 +89,7 @@ fn detect_os(call: &EvaluatedCall) -> Result<PipelineData, LabeledError> {
 impl PluginCommand for DetectOs {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo dev detectos"
+        "nudev detectos"
     }
     fn description(&self) -> &str {
         "This subcommand detects and returns Your Operating System. And if its Linux Or BSD, it will also return the Distro."

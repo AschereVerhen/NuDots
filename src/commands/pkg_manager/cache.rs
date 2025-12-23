@@ -18,7 +18,7 @@ pub fn install(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: 
 impl PluginCommand for Clean {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo pkg clean" //Installation.
+        "nupkg clean" //Installation.
     }
     fn description(&self) -> &str {
         "Allows you to clean your system os-agnostically"

@@ -40,7 +40,7 @@ pub struct DependencyCheck;
 impl PluginCommand for DependencyCheck {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo dev dependcheck"
+        "nudev dependcheck"
     }
     fn description(&self) -> &str {
         "This subcommand is there to ensure dependency check. It takes in a list of names, gets path, and ensures that the command is in path."

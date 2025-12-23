@@ -17,7 +17,7 @@ pub fn search(call: &EvaluatedCall, packages: Vec<String>, os: OS, engine: &Engi
 impl PluginCommand for Search {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo pkg search" //Installation.
+        "nupkg search" //Installation.
     }
     fn description(&self) -> &str {
         "Allows you to search packages os-agnostically"

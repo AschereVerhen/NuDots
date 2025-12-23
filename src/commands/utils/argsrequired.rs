@@ -28,7 +28,7 @@ pub struct ArgsRequired;
 impl PluginCommand for ArgsRequired {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo dev args_required"
+        "nudev args_required"
     }
     fn description(&self) -> &str {
         "This command detects if the user supplied enough args or not. If not, it errors out early."

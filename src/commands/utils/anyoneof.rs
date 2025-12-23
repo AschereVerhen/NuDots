@@ -45,7 +45,7 @@ pub fn anyoneof(call: &EvaluatedCall, input: PipelineData) -> Result<PipelineDat
 impl PluginCommand for AnyOneOf {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo dev anyoneof"
+        "nudev anyoneof"
     }
     fn description(&self) -> &str {
         "This function is there to get any one of the commands listed. It takes in a list of names, gets path, and returns the first program that is in the path from the list."

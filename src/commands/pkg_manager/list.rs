@@ -16,7 +16,7 @@ pub fn list(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm: boo
 impl PluginCommand for ListPkg {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo pkg list" //Installation.
+        "nupkg list" //Installation.
     }
     fn description(&self) -> &str {
         "Allows you to list all the packages installed on your system os-agnostically"

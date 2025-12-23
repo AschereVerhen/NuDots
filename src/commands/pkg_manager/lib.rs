@@ -99,26 +99,54 @@ pub enum Manager {
     Unknown,
 }
 
-impl Manager {
-    pub fn req_sudo(&self) -> bool {
-        !matches!(self, Manager::Paru | Manager::Yay)
-    }
-}
-
-use std::fmt;
-impl fmt::Display for Manager {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let s = match self {
+macro_rules! manager_to_str {
+    ($s: expr) => {
+        match $s {
             Manager::Paru => "paru",
             Manager::Yay => "yay",
             Manager::Pacman => "pacman",
             Manager::Emerge => "emerge",
             Manager::Zypper => "zypper",
             Manager::Dnf => "dnf",
-            // Manager::Nix => "nix",
             Manager::Apt => "apt",
             Manager::Unknown => "unknown",
-        };
+        }
+    };
+}
+
+impl Manager {
+    pub fn req_sudo(&self) -> bool {
+        !matches!(self, Manager::Paru | Manager::Yay)
+    }
+    pub fn as_str(&self) -> &'static str {
+        // match self {
+        //     Manager::Paru => "paru",
+        //     Manager::Yay => "yay",
+        //     Manager::Pacman => "pacman",
+        //     Manager::Emerge => "emerge",
+        //     Manager::Zypper => "zypper",
+        //     Manager::Dnf => "dnf",
+        //     Manager::Apt => "apt",
+        //     Manager::Unknown => "unknown",
+        // }
+        manager_to_str!(self)
+    }
+}
+
+use std::fmt;
+impl fmt::Display for Manager {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // let s = match self {
+        //     Manager::Paru => "paru",
+        //     Manager::Yay => "yay",
+        //     Manager::Pacman => "pacman",
+        //     Manager::Emerge => "emerge",
+        //     Manager::Zypper => "zypper",
+        //     Manager::Dnf => "dnf",
+        //     Manager::Apt => "apt",
+        //     Manager::Unknown => "unknown",
+        // };
+        let s = manager_to_str!(self);
         write!(f, "{s}")
     }
 }
@@ -132,12 +160,24 @@ pub enum PkgOp {
     ListInstalled,
 }
 
+
 //Be Aware, from now on, repetition is the only god. Do not read the below unless you **Enjoy** pain.
 pub struct OpSpec {
     pub command: &'static str,
     pub args: &'static [&'static str],
     pub nc_arg: &'static [&'static str],
     pub needs_root: bool,
+}
+
+impl OpSpec {
+    fn new(command: &'static str, args: &'static [&'static str], nc_arg: &'static [&'static str], needs_root: bool) -> Self {
+        Self {
+            command: command,
+            args: args,
+            nc_arg: nc_arg,
+            needs_root: needs_root,
+        }
+    }
 }
 impl Manager {
     pub fn op_spec(&self, op: PkgOp) -> Option<OpSpec> {
@@ -146,271 +186,52 @@ impl Manager {
 
         Some(match (self, op) {
             // ============================================================
-            // ARCH LINUX(Checked. Working.)
+            // ARCH LINUX
             // ============================================================
-            (Paru, Install) => OpSpec {
-                command: "paru",
-                args: &["-S"],
-                nc_arg: &["--noconfirm"],
-                needs_root: false,
-            },
-            (Paru, Uninstall) => OpSpec {
-                command: "paru",
-                args: &["-Rns"],
-                nc_arg: &["--noconfirm"],
-                needs_root: false,
-            },
-            (Paru, Update) => OpSpec {
-                command: "paru",
-                args: &["-Syu"],
-                nc_arg: &["--noconfirm"],
-                needs_root: false,
-            },
-            (Paru, Search) => OpSpec {
-                command: "paru",
-                args: &["-Ss"],
-                nc_arg: &[],
-                needs_root: false,
-            },
-            (Paru, CleanCache) => OpSpec {
-                command: "paru",
-                args: &["-Sc"],
-                nc_arg: &["--noconfirm"],
-                needs_root: false,
-            },
-            (Paru, ListInstalled) => OpSpec {
-                command: "paru",
-                args: &["-Q"],
-                nc_arg: &[],
-                needs_root: false,
-            },
-
-            (Yay, Install) => OpSpec {
-                command: "yay",
-                args: &["-S"],
-                nc_arg: &["--noconfirm"],
-                needs_root: false,
-            },
-            (Yay, Uninstall) => OpSpec {
-                command: "yay",
-                args: &["-Rns"],
-                nc_arg: &["--noconfirm"],
-                needs_root: false,
-            },
-            (Yay, Update) => OpSpec {
-                command: "yay",
-                args: &["-Syu"],
-                nc_arg: &["--noconfirm"],
-                needs_root: false,
-            },
-            (Yay, Search) => OpSpec {
-                command: "yay",
-                args: &["-Ss"],
-                nc_arg: &[],
-                needs_root: false,
-            },
-            (Yay, CleanCache) => OpSpec {
-                command: "yay",
-                args: &["-Sc"],
-                nc_arg: &["--noconfirm"],
-                needs_root: false,
-            },
-            (Yay, ListInstalled) => OpSpec {
-                command: "yay",
-                args: &["-Q"],
-                nc_arg: &[],
-                needs_root: false,
-            },
-
-            (Pacman, Install) => OpSpec {
-                command: "pacman",
-                args: &["-S"],
-                nc_arg: &["--noconfirm"],
-                needs_root: true,
-            },
-            (Pacman, Uninstall) => OpSpec {
-                command: "pacman",
-                args: &["-Rns"],
-                nc_arg: &["--noconfirm"],
-                needs_root: true,
-            },
-            (Pacman, Update) => OpSpec {
-                command: "pacman",
-                args: &["-Syu"],
-                nc_arg: &["--noconfirm"],
-                needs_root: true,
-            },
-            (Pacman, Search) => OpSpec {
-                command: "pacman",
-                args: &["-Ss"],
-                nc_arg: &[],
-                needs_root: false,
-            },
-            (Pacman, CleanCache) => OpSpec {
-                command: "pacman",
-                args: &["-Sc"],
-                nc_arg: &["--noconfirm"],
-                needs_root: true,
-            },
-            (Pacman, ListInstalled) => OpSpec {
-                command: "pacman",
-                args: &["-Q"],
-                nc_arg: &[],
-                needs_root: false,
-            },
+            (Paru | Pacman | Yay, Install)        => OpSpec::new(self.as_str(), &["-S"],   &["--noconfirm"], self.req_sudo()),
+            (Paru | Pacman | Yay, Uninstall)      => OpSpec::new(self.as_str(), &["-Rns"], &["--noconfirm"], self.req_sudo()),
+            (Paru | Pacman | Yay, Update)         => OpSpec::new(self.as_str(), &["-Syu"], &["--noconfirm"], self.req_sudo()),
+            (Paru | Pacman | Yay, Search)         => OpSpec::new(self.as_str(), &["-Ss"],  &[],              self.req_sudo()),
+            (Paru | Pacman | Yay, CleanCache)     => OpSpec::new(self.as_str(), &["-Scc"],  &["--noconfirm"], self.req_sudo()),
+            (Paru | Pacman | Yay, ListInstalled)  => OpSpec::new(self.as_str(), &["-Q"],   &[],              self.req_sudo()),
 
             // ============================================================
             // GENTOO
             // ============================================================
-            (Emerge, Install) => OpSpec {
-                command: "emerge",
-                args: &["--ask"],
-                nc_arg: &["--quiet"],
-                needs_root: true,
-            },
-            (Emerge, Uninstall) => OpSpec {
-                command: "emerge",
-                args: &["--unmerge", "--ask"],
-                nc_arg: &["--quiet"],
-                needs_root: true,
-            },
-            (Emerge, Update) => OpSpec {
-                command: "emerge",
-                args: &["-avuDN", "@world"],
-                nc_arg: &["--quiet"],
-                needs_root: true,
-            },
-            (Emerge, Search) => OpSpec {
-                command: "emerge",
-                args: &["--search"],
-                nc_arg: &[],
-                needs_root: false,
-            },
-            (Emerge, CleanCache) => OpSpec {
-                command: "emerge",
-                args: &["--depclean"],
-                nc_arg: &["--quiet"],
-                needs_root: true,
-            },
-            (Emerge, ListInstalled) => OpSpec {
-                command: "qlist",
-                args: &["-I"],
-                nc_arg: &[],
-                needs_root: false,
-            },
+            (Emerge, Install)      => OpSpec::new("emerge", &["--ask"],                &["--quiet"], true),
+            (Emerge, Uninstall)    => OpSpec::new("emerge", &["--unmerge", "--ask"],   &["--quiet"], true),
+            (Emerge, Update)       => OpSpec::new("emerge", &["-avuDN", "@world"],     &["--quiet"], true),
+            (Emerge, Search)       => OpSpec::new("emerge", &["--search"],             &[],          false),
+            (Emerge, CleanCache)   => OpSpec::new("emerge", &["--depclean"],           &["--quiet"], true),
+            (Emerge, ListInstalled)=> OpSpec::new("qlist",  &["-I"],                   &[],          false),
 
             // ============================================================
-            // RPM FAMILY(Checked; Working.)
+            // RPM FAMILY
             // ============================================================
-            (Dnf, Install) => OpSpec {
-                command: "dnf",
-                args: &["install"],
-                nc_arg: &["-y"],
-                needs_root: true,
-            },
-            (Dnf, Uninstall) => OpSpec {
-                command: "dnf",
-                args: &["remove"],
-                nc_arg: &["-y"],
-                needs_root: true,
-            },
-            (Dnf, Update) => OpSpec {
-                command: "dnf",
-                args: &["upgrade"],
-                nc_arg: &["-y"],
-                needs_root: true,
-            },
-            (Dnf, Search) => OpSpec {
-                command: "dnf",
-                args: &["search"],
-                nc_arg: &[],
-                needs_root: false,
-            },
-            (Dnf, CleanCache) => OpSpec {
-                command: "dnf",
-                args: &["clean", "all"],
-                nc_arg: &["--yes"],
-                needs_root: true,
-            },
-            (Dnf, ListInstalled) => OpSpec {
-                command: "dnf",
-                args: &["list", "--installed"],
-                nc_arg: &[],
-                needs_root: false,
-            },
+            (Dnf, Install)         => OpSpec::new("dnf", &["install"],           &["-y"], true),
+            (Dnf, Uninstall)       => OpSpec::new("dnf", &["remove"],            &["-y"], true),
+            (Dnf, Update)          => OpSpec::new("dnf", &["upgrade"],           &["-y"], true),
+            (Dnf, Search)          => OpSpec::new("dnf", &["search"],            &[],     false),
+            (Dnf, CleanCache)      => OpSpec::new("dnf", &["clean", "all"],      &["--yes"], true),
+            (Dnf, ListInstalled)   => OpSpec::new("dnf", &["list", "--installed"], &[],   false),
 
-            (Zypper, Install) => OpSpec {
-                command: "zypper",
-                args: &["install"],
-                nc_arg: &["-y"],
-                needs_root: true,
-            },
-            (Zypper, Uninstall) => OpSpec {
-                command: "zypper",
-                args: &["remove"],
-                nc_arg: &["-y"],
-                needs_root: true,
-            },
-            (Zypper, Update) => OpSpec {
-                command: "zypper",
-                args: &["update"],
-                nc_arg: &["-y"],
-                needs_root: true,
-            },
-            (Zypper, Search) => OpSpec {
-                command: "zypper",
-                args: &["search"],
-                nc_arg: &[],
-                needs_root: false,
-            },
-            (Zypper, CleanCache) => OpSpec {
-                command: "zypper",
-                args: &["clean"],
-                nc_arg: &["-y"],
-                needs_root: true,
-            },
-            (Zypper, ListInstalled) => OpSpec {
-                command: "zypper",
-                args: &["packages", "--installed-only"],
-                nc_arg: &[],
-                needs_root: false,
-            },
-            (Apt, Install) => OpSpec {
-                command: "apt",
-                args: &["install"],
-                nc_arg: &["-y"],
-                needs_root: true,
-            },
-            (Apt, Uninstall) => OpSpec {
-                command: "apt",
-                args: &["remove"],
-                nc_arg: &["-y"],
-                needs_root: true,
-            },
-            (Apt, Update) => OpSpec {
-                command: "apt",
-                args: &["update"],
-                nc_arg: &["-y"],
-                needs_root: true,
-            },
-            (Apt, Search) => OpSpec {
-                command: "apt",
-                args: &["search"],
-                nc_arg: &[],
-                needs_root: false,
-            },
-            (Apt, CleanCache) => OpSpec {
-                command: "apt",
-                args: &["clean"],
-                nc_arg: &["-y"],
-                needs_root: true,
-            },
-            (Apt, ListInstalled) => OpSpec {
-                command: "apt",
-                args: &["list", "--installed"],
-                nc_arg: &[],
-                needs_root: false,
-            },
+            (Zypper, Install)      => OpSpec::new("zypper", &["install"],               &["-y"], true),
+            (Zypper, Uninstall)    => OpSpec::new("zypper", &["remove"],                &["-y"], true),
+            (Zypper, Update)       => OpSpec::new("zypper", &["update"],                &["-y"], true),
+            (Zypper, Search)       => OpSpec::new("zypper", &["search"],                &[],     false),
+            (Zypper, CleanCache)   => OpSpec::new("zypper", &["clean"],                 &["-y"], true),
+            (Zypper, ListInstalled)=> OpSpec::new("zypper", &["packages", "--installed-only"], &[], false),
+
+            // ============================================================
+            // DEBIAN FAMILY
+            // ============================================================
+            (Apt, Install)         => OpSpec::new("apt", &["install"],           &["-y"], true),
+            (Apt, Uninstall)       => OpSpec::new("apt", &["remove"],            &["-y"], true),
+            (Apt, Update)          => OpSpec::new("apt", &["update"],            &["-y"], true),
+            (Apt, Search)          => OpSpec::new("apt", &["search"],            &[],     false),
+            (Apt, CleanCache)      => OpSpec::new("apt", &["clean"],             &["-y"], true),
+            (Apt, ListInstalled)   => OpSpec::new("apt", &["list", "--installed"], &[],   false),
+
             (Unknown, _) => return None,
         })
     }

@@ -949,7 +949,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "nu_plugin_nudo"
+name = "nu_plugin_nupm"
 version = "0.1.0"
 dependencies = [
  "nu-plugin",

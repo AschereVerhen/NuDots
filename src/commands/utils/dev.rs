@@ -13,7 +13,7 @@ pub struct Dev;
 impl PluginCommand for Dev {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo dev"
+        "nudev"
     }
     fn description(&self) -> &str {
         "These are Developer commands. These are kinda not meant for normal use. but you are free to use em."
@@ -69,6 +69,7 @@ impl PluginCommand for Dev {
             _call: &nu_plugin::EvaluatedCall,
             _input: nu_protocol::PipelineData,
         ) -> Result<nu_protocol::PipelineData, nu_protocol::LabeledError> {
+        println!("{}", _engine.get_help()?);
         Ok(PipelineData::Empty)
     }
 }

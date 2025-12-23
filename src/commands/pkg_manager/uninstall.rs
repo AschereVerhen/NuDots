@@ -17,7 +17,7 @@ pub fn uninstall(call: &EvaluatedCall, packages: Vec<String>, os: OS, no_confirm
 impl PluginCommand for Uninstall {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo pkg uninstall" //Installation.
+        "nupkg uninstall" //Installation.
     }
     fn description(&self) -> &str {
         "Allows you to uninstall packages os-agnostically"

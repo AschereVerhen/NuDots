@@ -63,7 +63,7 @@ pub fn run(call: &EvaluatedCall, cmd: String, arguments: Vec<String>, engine: &E
 impl PluginCommand for Run {
     type Plugin = Nudo;
     fn name(&self) -> &str {
-        "nudo dev run"
+        "nudev run"
     }
     fn description(&self) -> &str {
         "Runs a command with an args list. And then Provides a labelled Error if it errored out."
