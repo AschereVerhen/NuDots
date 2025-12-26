@@ -1,7 +1,7 @@
 use nu_plugin::{EngineInterface, EvaluatedCall, PluginCommand};
 use nu_protocol::{Example, LabeledError, PipelineData, Signature, SyntaxShape, Type};
 use crate::utils::save::ConfigUnit;
-use crate::utils::writelogic::write_config;
+use crate::utils::writelogic::append_confunit;
 use crate::NuStartPlugin;
 
 pub struct Add;
@@ -10,7 +10,7 @@ pub fn add(arguments: Vec<String>, restart: bool) -> Result<PipelineData, Labele
     let program = arguments[0].clone();
     let arguments = arguments[1..].to_vec();
     let confunit = ConfigUnit::new(program, arguments, restart, true);
-    write_config(confunit).map_err(|e| LabeledError::new(e.to_string()))?; //This will append the
+    append_confunit(confunit).map_err(|e| LabeledError::new(e.to_string()))?; //This will append the
     // config unit to the autostart database.
     Ok(PipelineData::Empty)
 }

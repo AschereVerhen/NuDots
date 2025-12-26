@@ -6,6 +6,7 @@ use crate::{
     commands::nustart::NuStart,
     commands::add::Add,
     commands::get::Get,
+    commands::remove::Remove,
 };
 
 pub struct NuStartPlugin;
@@ -20,6 +21,7 @@ impl Plugin for NuStartPlugin {
             mybox![NuStart],
             mybox![Add],
             mybox![Get],
+            mybox![Remove],
         ]
     }
 }

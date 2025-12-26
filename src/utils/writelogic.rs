@@ -25,7 +25,7 @@ pub fn get_config() -> ConfigFile {
     deserialize
 }
 
-pub fn write_config(config_unit: ConfigUnit) -> std::io::Result<()> {
+pub fn append_confunit(config_unit: ConfigUnit) -> std::io::Result<()> {
     use std::io::Write;
     let config_path = get_configpath();
     let mut new_config = get_config();
@@ -53,5 +53,18 @@ pub fn write_config(config_unit: ConfigUnit) -> std::io::Result<()> {
     let new_serialization = serde_json::to_string_pretty(&new_config)?;
     writeln!(&mut file, "{new_serialization}")?;
 
+    Ok(())
+}
+
+pub fn write_configfile(config_file: ConfigFile) -> std::io::Result<()> {
+    use std::io::Write;
+    let mut file = std::fs::File::options()
+        .write(true)
+        .truncate(true)
+        .create(true)
+        .open(get_configpath())?;
+    let serialize = serde_json::to_string(&config_file)?;
+    writeln!(&mut file, "{serialize}")?;
+    
     Ok(())
 }
