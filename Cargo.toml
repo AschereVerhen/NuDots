@@ -1,0 +1,13 @@
+[package]
+name = "nu_plugin_nustart"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+directories = "6.0.0"
+nu-plugin = "0.109.1"
+nu-protocol = "0.109.1"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.147"
+syscalls = { version = "0.7.0", features = ["all"] }
+which = "8.0.0"
