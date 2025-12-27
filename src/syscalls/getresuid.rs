@@ -9,7 +9,7 @@ pub struct Uid {
 #[derive(Debug)]
 pub enum Errors {
     SyscallError(syscalls::Errno),
-    PriviledgeError {
+    PrivilegeError {
         ruid: uid_t,
         euid: uid_t,
         suid: uid_t,
@@ -50,7 +50,7 @@ impl Uid {
             Ok(Self::from(ruid))
         } else {
             println!("{}, {}, {} are not equal.", ruid, euid, suid);
-            Err(Errors::PriviledgeError { ruid, euid, suid })
+            Err(Errors::PrivilegeError { ruid, euid, suid })
         }
     }
 }

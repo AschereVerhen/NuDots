@@ -2,11 +2,12 @@
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use nu_protocol::{record, Span, Value};
+use crate::utils::check_dependency::check_depends;
+use nu_protocol::{record, LabeledError, Span, Value};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ConfigUnit {
-    pub name: String,
+    name: String,
     arguments: Vec<String>,
     path: PathBuf,
     restart: bool,
@@ -30,21 +31,15 @@ impl ConfigUnit {
     pub fn get_enable(&self) -> bool {
         self.enable
     }
-    pub fn new(name: String, arguments: Vec<String>, restart: bool, enable: bool) -> Self {
-        let path = match which::which(&name) {
-            Ok(path) => path,
-            Err(e) => panic!(
-                "Failed to get path of the program: {}. Error: {:?}",
-                &name, e
-            ),
-        };
-        Self {
+    pub fn new(name: String, arguments: Vec<String>, restart: bool, enable: bool) -> Result<Self, LabeledError> {
+        let path = check_depends(vec![name.clone()])?[0].clone();
+        Ok(Self {
             name,
             arguments,
             path,
             restart,
             enable
-        }
+        })
     }
 }
 

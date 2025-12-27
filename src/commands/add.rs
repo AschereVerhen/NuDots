@@ -9,7 +9,7 @@ pub struct Add;
 pub fn add(arguments: Vec<String>, restart: bool) -> Result<PipelineData, LabeledError> {
     let program = arguments[0].clone();
     let arguments = arguments[1..].to_vec();
-    let confunit = ConfigUnit::new(program, arguments, restart, true);
+    let confunit = ConfigUnit::new(program, arguments, restart, true)?;
     append_confunit(confunit).map_err(|e| LabeledError::new(e.to_string()))?; //This will append the
     // config unit to the autostart database.
     Ok(PipelineData::Empty)
