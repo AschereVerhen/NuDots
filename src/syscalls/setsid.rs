@@ -6,6 +6,7 @@ pub struct Pid {
     pub pid: pid_t,
 }
 #[derive(PartialEq)]
+#[allow(dead_code)]
 pub enum ChildStatus {
     Alive,
     Dead
@@ -19,22 +20,7 @@ impl Pid {
         return self.pid;
     }
     pub fn setsid() -> Result<(), Errno> {
-        let result = unsafe { syscall!(Sysno::setsid) }?;
+        let _result = unsafe { syscall!(Sysno::setsid) }?;
         return Ok(());
-    }
-    ///This function probes the child process to check if its alive or ded
-    pub fn probe(&self) -> Result<ChildStatus, Errno> {
-        let pid = self.get_raw();
-        let result = unsafe {
-            syscall!(
-                Sysno::kill,
-                pid,
-                0 //just probe.
-            )
-        };
-        if result.err() == Some(Errno::ESRCH) {return Ok(ChildStatus::Dead);}
-        let _ = result?; //Propogate the error if any.
-
-        Ok(ChildStatus::Alive)
     }
 }

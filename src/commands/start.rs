@@ -1,6 +1,5 @@
-use std::ffi::CString;
 use nu_plugin::{EngineInterface, EvaluatedCall, PluginCommand};
-use nu_protocol::{Example, LabeledError, PipelineData, ShellError, Signature, SyntaxShape, Type};
+use nu_protocol::{Example, LabeledError, PipelineData, Signature};
 use crate::{NuStartPlugin};
 use crate::utils::writelogic::get_config;
 
@@ -32,9 +31,9 @@ impl PluginCommand for Start {
     fn run(
         &self,
         _plugin: &Self::Plugin,
-        engine: &EngineInterface,
+        _engine: &EngineInterface,
         call: &EvaluatedCall,
-        input: PipelineData,
+        _input: PipelineData,
     ) -> Result<PipelineData, LabeledError> {
         start(call)?;
         Ok(PipelineData::Empty)
@@ -47,7 +46,6 @@ pub fn start(call: &EvaluatedCall) -> Result<PipelineData, LabeledError> {
     use crate::syscalls::{
         execve::execve,
         setsid::Pid,
-        getresuid::Uid,
     };
     use crate::make_error;
     use std::ffi::CString;
@@ -63,7 +61,7 @@ pub fn start(call: &EvaluatedCall) -> Result<PipelineData, LabeledError> {
         let safe_arguments: Vec<CString> = arguments.into_iter().map(|element| {
             match CString::new(element.clone()) {
                 Ok(cstring) => cstring,
-                Err(e) => panic!("The argument: {element}, contained a Null byte.")
+                Err(_) => panic!("The argument: {element}, contained a Null byte.")
             }
         }).collect();
         let envs: Vec<CString> = std::env::vars().map(|(key, value)| {

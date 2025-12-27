@@ -10,7 +10,7 @@ impl Pid {
     }
     pub fn wait_for_child(&self) -> Result<ChildStatus, Errno> {
         let mut status: i32 = 0;
-        let result = unsafe {
+        let _result = unsafe {
             syscall!(
                 Sysno::wait4,
                 self.get_raw(),

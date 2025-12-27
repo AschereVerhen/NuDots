@@ -1,7 +1,7 @@
 use std::ffi::{c_char, CString};
 use std::os::unix::ffi::OsStrExt;
 use nu_plugin::EvaluatedCall;
-use syscalls::{syscall, Errno, Sysno};
+use syscalls::{syscall, Sysno};
 use nu_protocol::LabeledError;
 use which::which;
 use crate::{make_error, return_error};
@@ -19,7 +19,7 @@ pub fn execve(arguments: Vec<CString>, env: Vec<CString>, call: &EvaluatedCall) 
 
     let program = match arguments[0].to_str() {
         Ok(s) => s,
-        Err(e) => return_error!(
+        Err(_e) => return_error!(
             format!("The name in command: {:?} had invalid utf-8 characters.", arguments[0]),
             "Please provide a valid name.",
             call.head
@@ -27,7 +27,7 @@ pub fn execve(arguments: Vec<CString>, env: Vec<CString>, call: &EvaluatedCall) 
     };
     let path_to_program = match which(program) {
         Ok(s) => s,
-        Err(e) => return_error!(
+        Err(_e) => return_error!(
             format!("The program: {} Was not found in the path.", program),
             "Please install the program or provide the correct name.",
             call.head
@@ -42,7 +42,7 @@ pub fn execve(arguments: Vec<CString>, env: Vec<CString>, call: &EvaluatedCall) 
         ),
     };
 
-    let result = unsafe {
+    let _result = unsafe {
         syscall!(
             Sysno::execve,
             c_path.as_ptr(),
