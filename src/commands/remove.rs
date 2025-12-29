@@ -1,10 +1,7 @@
-use nu_plugin::{EngineInterface, EvaluatedCall, PluginCommand};
-use nu_protocol::{Example, LabeledError, PipelineData, Signature, SyntaxShape, Type};
 use crate::utils::save::{ConfigFile, ConfigUnit};
 use crate::utils::writelogic::{get_config, write_configfile};
 use crate::NuStartPlugin;
-
-pub struct Remove;
+use crate::plugincmd;
 
 
 pub fn remove(remove_cmd: Option<String>, index: Option<u32>, everything: bool) -> Result<PipelineData, LabeledError> {
@@ -52,15 +49,14 @@ pub fn remove(remove_cmd: Option<String>, index: Option<u32>, everything: bool) 
     Ok(PipelineData::Empty)
 }
 
-impl PluginCommand for Remove {
-    type Plugin = NuStartPlugin;
 
-    fn name(&self) -> &str {
-        "nustart remove"
-    }
 
-    fn signature(&self) -> Signature {
-        Signature::build(self.name())
+plugincmd!(
+    plugin: NuStartPlugin,
+    name: Remove,
+    cliName: "nustart remove",
+    signature: {
+        Signature::build(Remove.name())
             .optional("Command", SyntaxShape::String, "Command to add")
             .switch(
                 "all",
@@ -77,31 +73,16 @@ impl PluginCommand for Remove {
             .input_output_types(vec![
                 (Type::Nothing, Type::Nothing),
             ])
-    }
-
-    fn description(&self) -> &str {
-        "NuStart Remove: Remove a command from autostart database."
-    }
-
-    fn search_terms(&self) -> Vec<&str> {
-        vec!["enable", "save", "add"]
-    }
-
-    fn examples(&self) -> Vec<Example<'_>> {
-        vec![]
-    }
-
-    fn run(
-        &self,
-        _plugin: &Self::Plugin,
-        _engine: &EngineInterface,
-        call: &EvaluatedCall,
-        _input: PipelineData,
-    ) -> Result<PipelineData, LabeledError> {
+    },
+    description: "NuStart Remove: Remove a command from autostart database.",
+    searchTerms: ["enable", "save", "add"],
+    examples: [],
+    run: |_: &Self::Plugin, _, call: &EvaluatedCall, _| -> Result<PipelineData, LabeledError> {
         let program: Option<String> = call.opt(0)?;
         let everything = call.has_flag("all")?;
         let index = call.get_flag::<u32>("index")?;
         remove(program, index, everything)?;
         Ok(PipelineData::Empty)
     }
-}
+
+);

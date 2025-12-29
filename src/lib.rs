@@ -3,10 +3,7 @@ pub mod commands;
 pub mod syscalls;
 pub mod utils;
 use crate::{
-    commands::nustart::NuStart,
-    commands::add::Add,
-    commands::get::Get,
-    commands::remove::Remove,
+    commands::add::Add, commands::get::Get, commands::nustart::NuStart, commands::remove::Remove,
     commands::start::Start,
 };
 
@@ -27,3 +24,4 @@ impl Plugin for NuStartPlugin {
         ]
     }
 }
+

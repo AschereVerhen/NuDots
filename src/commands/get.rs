@@ -1,20 +1,13 @@
-use nu_plugin::{PluginCommand, EngineInterface, EvaluatedCall};
-
-use nu_protocol::{Signature, Example, PipelineData, LabeledError, Type};
-use crate::{mybox, NuStartPlugin};
+use crate::{mybox, plugincmd, NuStartPlugin};
 use crate::utils::writelogic::{get_config};
 
-pub struct Get;
 
-impl PluginCommand for Get {
-    type Plugin = NuStartPlugin;
-
-    fn name(&self) -> &str {
-        "nustart get"
-    }
-
-    fn signature(&self) -> Signature {
-        Signature::build(self.name())
+plugincmd!(
+    plugin: NuStartPlugin,
+    name: Get,
+    cliName: "nustart get",
+    signature: {
+        Signature::build(Get.name())
             .add_help()
             .input_output_type(Type::Nothing, Type::Record(
                 mybox!([("programs".to_string(), Type::Table(mybox!([
@@ -25,28 +18,12 @@ impl PluginCommand for Get {
                     ("enabled".to_string(), Type::Bool),
                 ])))])
             ))
-    }
-
-    fn description(&self) -> &str {
-        "NuStart Add: Add a command to autostart."
-    }
-
-    fn search_terms(&self) -> Vec<&str> {
-        vec!["enable", "save", "add"]
-    }
-
-    fn examples(&self) -> Vec<Example<'_>> {
-        vec![]
-    }
-
-    fn run(
-        &self,
-        _plugin: &Self::Plugin,
-        _engine: &EngineInterface,
-        _call: &EvaluatedCall,
-        _input: PipelineData,
-    ) -> Result<PipelineData, LabeledError> {
+    },
+    description: "NuStart Add: Add a command to autostart.",
+    searchTerms: ["enable", "save", "add"],
+    examples: [],
+    run: |_,_,_,_| -> Result<PipelineData, LabeledError> {
         let record = get_config().into();
         Ok(PipelineData::Value(record, None))
     }
-}
+);
