@@ -1,5 +1,6 @@
 use nu_plugin::Plugin;
 pub mod commands;
+pub mod prelude;
 pub mod syscalls;
 pub mod utils;
 use crate::{
@@ -24,4 +25,3 @@ impl Plugin for NuStartPlugin {
         ]
     }
 }
-

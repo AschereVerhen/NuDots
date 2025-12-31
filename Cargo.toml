@@ -3,10 +3,14 @@ name = "nu_plugin_nustart"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+proc-macros = true
+
 [dependencies]
 directories = "6.0.0"
 nu-plugin = "0.109.1"
 nu-protocol = "0.109.1"
+plugin_command_macro = { version = "0.1.0", path = "src/plugin_command_macro" }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.147"
 syscalls = { version = "0.7.0", features = ["all"] }

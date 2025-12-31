@@ -1,8 +1,4 @@
-use crate::utils::save::{ConfigFile, ConfigUnit};
-use crate::utils::writelogic::{get_config, write_configfile};
-use crate::NuStartPlugin;
-use crate::plugincmd;
-
+use crate::prelude::*;
 
 pub fn remove(remove_cmd: Option<String>, index: Option<u32>, everything: bool) -> Result<PipelineData, LabeledError> {
     let configfile = get_config();
@@ -51,38 +47,43 @@ pub fn remove(remove_cmd: Option<String>, index: Option<u32>, everything: bool) 
 
 
 
-plugincmd!(
-    plugin: NuStartPlugin,
-    name: Remove,
-    cliName: "nustart remove",
-    signature: {
-        Signature::build(Remove.name())
-            .optional("Command", SyntaxShape::String, "Command to add")
-            .switch(
-                "all",
-                "Choose to remove all the programs. None will remain.",
-                Some('a'),
-            )
-            .named(
-                "index",
-                SyntaxShape::Int,
-                "Select the exact index of the table to remove",
-                Some('i'),
-            )
-            .add_help()
-            .input_output_types(vec![
-                (Type::Nothing, Type::Nothing),
-            ])
-    },
-    description: "NuStart Remove: Remove a command from autostart database.",
-    searchTerms: ["enable", "save", "add"],
-    examples: [],
-    run: |_: &Self::Plugin, _, call: &EvaluatedCall, _| -> Result<PipelineData, LabeledError> {
-        let program: Option<String> = call.opt(0)?;
-        let everything = call.has_flag("all")?;
-        let index = call.get_flag::<u32>("index")?;
-        remove(program, index, everything)?;
-        Ok(PipelineData::Empty)
-    }
+fn sig() -> Signature {
+    Signature::build(Remove.name())
+        .optional("Command", SyntaxShape::String, "Command to add")
+        .switch(
+            "all",
+            "Choose to remove all the programs. None will remain.",
+            Some('a'),
+        )
+        .named(
+            "index",
+            SyntaxShape::Int,
+            "Select the exact index of the table to remove",
+            Some('i'),
+        )
+        .add_help()
+        .input_output_types(vec![
+            (Type::Nothing, Type::Nothing),
+        ])
+}
 
-);
+fn call_remove(
+    _engine: EngineInterface,
+    call: EvaluatedCall,
+    _input: PipelineData,
+) -> Result<PipelineData, LabeledError> {
+    let program: Option<String> = call.opt(0)?;
+    let everything = call.has_flag("all")?;
+    let index = call.get_flag::<u32>("index")?;
+    remove(program, index, everything)?;
+    Ok(PipelineData::Empty)
+}
+
+#[plugin_command(
+name = "nustart remove",
+plugin = NuStartPlugin,
+description = "Remove a program from autostart database",
+signature = sig(),
+run = call_remove,
+)]
+pub struct Remove;

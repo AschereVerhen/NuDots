@@ -1,24 +1,14 @@
-use crate::utils::writelogic::get_config;
-use crate::{plugincmd, NuStartPlugin};
+use crate::prelude::*;
+#[plugin_command(
+name = "nustart start",
+plugin = NuStartPlugin,
+description = "NuStart Start: Start the commmands in the database.",
+signature = Signature::build(Start.name()).add_help(),
+run = start
+)]
+pub struct Start;
 
-plugincmd!(
-    plugin: NuStartPlugin,
-    name: Start,
-    cliName: "nustart start",
-    signature: {
-        Signature::build(Start.name()).add_help()
-    },
-    description: "NuStart Start: Start the commmands in the database.",
-    searchTerms: ["database", "start"],
-    examples: [], //No Examples for now.
-    run: |_plugin, _engine, call, _input| {
-        start(call)
-    }
-);
-
-
-
-pub fn start(call: &EvaluatedCall) -> Result<PipelineData, LabeledError> {
+pub fn start(_: EngineInterface, call: EvaluatedCall, _: PipelineData) -> Result<PipelineData, LabeledError> {
     //First, lets import all the syscalls:
     use crate::syscalls::{execve::execve, setsid::Pid};
     use crate::make_error;
@@ -59,7 +49,7 @@ pub fn start(call: &EvaluatedCall) -> Result<PipelineData, LabeledError> {
         if result == 0 {
             //Child pid. We will do setsid, execve, and then constantly restart the process if --restart was passed to it.
             Pid::setsid().unwrap();
-            execve(safe_arguments.clone(), envs.clone(), call)?;
+            execve(safe_arguments.clone(), envs.clone(), &call)?;
         }
         //Else, we are the parent. In this case, we want to watch for the child, yk reap it.
         if restart {
@@ -73,7 +63,7 @@ pub fn start(call: &EvaluatedCall) -> Result<PipelineData, LabeledError> {
                 loop {
                     let worker_pid = Pid::fork().unwrap().get_raw();
                     if worker_pid == 0 {
-                        execve(safe_arguments.clone(), envs.clone(), call)?;
+                        execve(safe_arguments.clone(), envs.clone(), &call)?;
                     } else {
                         let _ = Pid::from(worker_pid).wait_for_child();
                         std::thread::sleep(std::time::Duration::from_millis(500));
