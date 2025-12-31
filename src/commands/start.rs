@@ -1,3 +1,4 @@
+// use nu_protocol::LabeledError;
 use crate::prelude::*;
 #[plugin_command(
 name = "nustart start",
@@ -24,7 +25,7 @@ pub fn start(_: EngineInterface, call: EvaluatedCall, _: PipelineData) -> Result
         let mut arguments = program.get_arguments();
         let name = program.get_name();
         //we must pass name into the arguments vector.
-        arguments.insert(0, name);
+        arguments.insert(0, name.clone());
         let safe_arguments: Vec<CString> = arguments
             .into_iter()
             .map(|element| match CString::new(element.clone()) {
@@ -52,10 +53,21 @@ pub fn start(_: EngineInterface, call: EvaluatedCall, _: PipelineData) -> Result
             execve(safe_arguments.clone(), envs.clone(), &call)?;
         }
         //Else, we are the parent. In this case, we want to watch for the child, yk reap it.
+
         if restart {
             //we do not care about the parent in this case. we just want to loop in case of the child.
             let pid = Pid::fork().unwrap().get_raw();
             if pid != 0 {
+                //write the pid of this monitor child process to out pids first before writing the og pid one.
+                let monitor_pid = Pid::from(pid);
+                let monitor = true;
+                let name = name.clone();
+                let pid = PidFile::new(
+                    vec![
+                        PidUnit::new(monitor_pid, name, monitor)
+                    ]
+                );
+                write_pid(pid).map_err(|e| make_error!(format!("An Error occured when writing pid: {e:?}"), "Failed to write", call.head))?;
                 continue;
             }
             if pid == 0 {
@@ -71,7 +83,18 @@ pub fn start(_: EngineInterface, call: EvaluatedCall, _: PipelineData) -> Result
                 }
             }
         }
+        //Now write the pid
+        let child_pid = Pid::from(result);
+        let monitor = false;
+        let name = name.clone();
+        let pid = PidFile::new(
+            vec![
+                PidUnit::new(child_pid, name, monitor)
+            ]
+        );
+        debugf!("{:?}", &pid);
+        write_pid(pid).map_err(|e| make_error!(format!("An Error occured when writing pid: {e:?}"), "Failed to write", call.head))?;
     }
 
-    Ok(PipelineData::Empty) // Placeholder.
+    Ok(PipelineData::Empty)
 }

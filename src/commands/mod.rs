@@ -3,3 +3,4 @@ pub(crate) mod add;
 pub(crate) mod get;
 pub(crate) mod remove;
 pub(crate) mod start;
+pub(crate) mod stop;

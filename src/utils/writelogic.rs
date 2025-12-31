@@ -1,8 +1,6 @@
 use std::path::PathBuf;
 use directories::BaseDirs;
-use crate::debugf;
-use crate::utils::save::{ConfigFile, ConfigUnit};
-
+use crate::prelude::*;
 fn get_configpath() -> PathBuf {
     let basedir = BaseDirs::new().expect("failed to get home directory");
     let config_path = basedir.data_dir().join("nustart").join("autostart.json");
@@ -70,5 +68,53 @@ pub fn write_configfile(config_file: ConfigFile) -> std::io::Result<()> {
         .open(get_configpath())?;
     let serialize = serde_json::to_string(&config_file)?;
     writeln!(&mut file, "{serialize}")?;
+    debugf!("Write Successful.");
     Ok(())
+}
+//PIDS are not supposed to be non-volatile.
+pub fn destroy_pids() {
+    let pid = get_pid_path();
+    std::fs::remove_file(pid).expect("failed to remove pid file");
+}
+
+pub fn get_pid_path() -> PathBuf {
+    let path = BaseDirs::new().expect("Failed to get home directory");
+    let pid_dir = path.data_dir().join("nustart").join("pid.txt");
+    if let Some(parent) = pid_dir.parent() {
+        debugf!("Creating directory {:?}", parent);
+        std::fs::create_dir_all(parent).expect("failed to create config directory");
+    }
+
+    if !pid_dir.exists() {
+        debugf!("Creating default pid file(empty)");
+        std::fs::write(&pid_dir, "").expect("Failed to create pid file");
+    }
+
+    pid_dir
+}
+
+
+pub fn write_pid(pid: PidFile) -> std::io::Result<()> {
+    let path = get_pid_path();
+    let mut file = std::fs::File::options().write(true).truncate(true).open(path)?;
+    use std::io::Write;
+    let content = serde_json::to_string_pretty(&pid)?;
+    writeln!(&mut file, "")?; //nuke the file first.
+    writeln!(&mut file, "{content}")?;
+    Ok(())
+}
+
+pub fn get_pids(call: &EvaluatedCall) -> Result<Vec<PidUnit>, nu_protocol::LabeledError> {
+    let pid_path = get_pid_path();
+    let contents = std::fs::read_to_string(&pid_path).expect("failed to read pid file");
+    let file: PidFile = serde_json::from_str(&contents)
+        .map_err(|e| {
+            use nu_protocol::LabeledError;
+            make_error!(
+                format!("An Error While parsing pid file: {}", e),
+                "Maybe the file is invalid?",
+                call.head
+            )
+        })?;
+    Ok(file.get_pids())
 }

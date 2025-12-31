@@ -1,8 +1,19 @@
 #[allow(unused_imports)]
-pub use nu_protocol::*;
+pub use nu_protocol::{
+    LabeledError,
+    Type,
+    PipelineData,
+    Signature,
+    SyntaxShape,
+};
 
-pub use nu_plugin::*;
-
+pub use nu_plugin::{
+    Plugin,
+    PluginCommand,
+    EvaluatedCall,
+    EngineInterface,
+};
+pub use crate::{make_error, return_error};
 pub use crate::NuStartPlugin;
 
 pub use plugin_command_macro::plugin_command;
@@ -18,4 +29,7 @@ pub use crate::utils::{
     writelogic::*,
 };
 
-pub use crate::mybox;
+pub use crate::{
+    mybox,
+    debugf
+};

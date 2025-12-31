@@ -4,8 +4,12 @@ pub mod prelude;
 pub mod syscalls;
 pub mod utils;
 use crate::{
-    commands::add::Add, commands::get::Get, commands::nustart::NuStart, commands::remove::Remove,
+    commands::add::Add,
+    commands::get::Get,
+    commands::nustart::NuStart,
+    commands::remove::Remove,
     commands::start::Start,
+    commands::stop::Stop,
 };
 
 pub struct NuStartPlugin;
@@ -22,6 +26,7 @@ impl Plugin for NuStartPlugin {
             mybox![Get],
             mybox![Remove],
             mybox![Start],
+            mybox![Stop],
         ]
     }
 }

@@ -85,6 +85,8 @@ macro_rules! debugf {
                 $str,
                 $( $arguments )*
             ) //print to stderr instead of stdout to ensure the output doesnt get caught by any piping.
+        } else {
+            ()
         }
     }}
 }
