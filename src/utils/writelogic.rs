@@ -98,14 +98,13 @@ pub fn get_pid_path() -> PathBuf {
 
 pub fn write_pid(pid: PidFile) -> std::io::Result<()> {
     let path = get_pid_path();
-    let default_val = r#"{ "pids": [] }"#;
     let mut file = std::fs::File::options()
         .write(true)
         .truncate(true)
         .open(path)?;
     use std::io::Write;
     let content = serde_json::to_string_pretty(&pid)?;
-    writeln!(&mut file, "{default_val}")?; //nuke the file first.
+    writeln!(&mut file, "")?; //nuke the file first.
     writeln!(&mut file, "{content}")?;
     Ok(())
 }
@@ -123,4 +122,3 @@ pub fn get_pids(call: &EvaluatedCall) -> Result<Vec<PidUnit>, nu_protocol::Label
     })?;
     Ok(file.get_pids())
 }
-
