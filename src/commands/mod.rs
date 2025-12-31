@@ -4,3 +4,5 @@ pub(crate) mod get;
 pub(crate) mod remove;
 pub(crate) mod start;
 pub(crate) mod stop;
+pub(crate) mod enable;
+pub(crate) mod disable;

@@ -89,7 +89,8 @@ pub fn get_pid_path() -> PathBuf {
 
     if !pid_dir.exists() {
         debugf!("Creating default pid file(empty)");
-        std::fs::write(&pid_dir, "").expect("Failed to create pid file");
+        let default_val = r#"{ "pids": [] }"#;
+        std::fs::write(&pid_dir, default_val).expect("Failed to create pid file");
     }
 
     pid_dir
@@ -97,13 +98,14 @@ pub fn get_pid_path() -> PathBuf {
 
 pub fn write_pid(pid: PidFile) -> std::io::Result<()> {
     let path = get_pid_path();
+    let default_val = r#"{ "pids": [] }"#;
     let mut file = std::fs::File::options()
         .write(true)
         .truncate(true)
         .open(path)?;
     use std::io::Write;
     let content = serde_json::to_string_pretty(&pid)?;
-    writeln!(&mut file, "")?; //nuke the file first.
+    writeln!(&mut file, "{default_val}")?; //nuke the file first.
     writeln!(&mut file, "{content}")?;
     Ok(())
 }

@@ -10,6 +10,8 @@ use crate::{
     commands::remove::Remove,
     commands::start::Start,
     commands::stop::Stop,
+    commands::disable::Disable,
+    commands::enable::Enable,
 };
 
 pub struct NuStartPlugin;
@@ -27,6 +29,8 @@ impl Plugin for NuStartPlugin {
             mybox![Remove],
             mybox![Start],
             mybox![Stop],
+            mybox![Disable],
+            mybox![Enable]
         ]
     }
 }

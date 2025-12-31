@@ -5,18 +5,28 @@ name = "nustart start",
 plugin = NuStartPlugin,
 description = "NuStart Start: Start the commmands in the database.",
 signature = Signature::build(Start.name()).add_help(),
-run = start
+run = call_start
 )]
 pub struct Start;
 
-pub fn start(_: EngineInterface, call: EvaluatedCall, _: PipelineData) -> Result<PipelineData, LabeledError> {
+fn call_start(
+    _: EngineInterface,
+    call: EvaluatedCall,
+    _: PipelineData
+) -> Result<PipelineData, LabeledError> {
+    let mut config = get_config();
+    let programs = config.get_programs_mut();
+    start(programs, &call)?;
+    Ok(PipelineData::Empty)
+}
+
+
+pub fn start(programs: &mut Vec<ConfigUnit>, call: &EvaluatedCall) -> Result<PipelineData, LabeledError> {
     //First, lets import all the syscalls:
     use crate::syscalls::{execve::execve, setsid::Pid};
     use crate::make_error;
     use std::ffi::CString;
-    let mut config = get_config();
-    let programs = config.get_programs_mut().iter();
-    for program in programs {
+    for program in programs.iter() {
         //if the program is not enabled, we will just skip everything.
         if !program.get_enable() {
             continue;

@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 
-pub fn stop(pidunits: Vec<PidUnit>,name_passed: Option<&String>, all: bool) -> Result<PipelineData, LabeledError> {
+pub fn stop(pidunits: &Vec<PidUnit>,name_passed: Option<&String>, all: bool) -> Result<PipelineData, LabeledError> {
     let mut new_pidfile: Vec<PidUnit> = Vec::new();
     for pidunit in pidunits {
         let pid = pidunit.get_pid();
@@ -20,6 +20,7 @@ pub fn stop(pidunits: Vec<PidUnit>,name_passed: Option<&String>, all: bool) -> R
             debugf!("A Monitor process survived. It means that either the user intended it to survive or a bug occured.");
             let saved_monitor_pid = PidUnit::new(pid.clone(), name.to_string(), monitor);
             new_pidfile.push(saved_monitor_pid);
+            continue;
         }
         //Else do the same thing.
         if let Some(name_dec) = name_passed && name == name_dec {
@@ -62,7 +63,7 @@ pub fn call_stop(
     let args: Vec<String> = call.rest(0)?;
     let all: bool = call.has_flag("all")?;
     //Using args.get() as it returns a Option<&String> and is safer.
-    stop(pids, args.get(0), all)?;
+    stop(&pids, args.get(0), all)?;
     Ok(PipelineData::Empty)
 }
 

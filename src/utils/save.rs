@@ -41,6 +41,14 @@ impl ConfigUnit {
             enable
         })
     }
+    pub fn set_enabled(&mut self) -> &mut Self {
+        self.enable = true;
+        self
+    }
+    pub fn set_disabled(&mut self) -> &mut Self {
+        self.enable = false;
+        self
+    }
 }
 
 //Implimenting from<ConfigUnit> for Values
