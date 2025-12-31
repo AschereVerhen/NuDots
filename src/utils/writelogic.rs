@@ -1,6 +1,6 @@
-use std::path::PathBuf;
-use directories::BaseDirs;
 use crate::prelude::*;
+use directories::BaseDirs;
+use std::path::PathBuf;
 fn get_configpath() -> PathBuf {
     let basedir = BaseDirs::new().expect("failed to get home directory");
     let config_path = basedir.data_dir().join("nustart").join("autostart.json");
@@ -41,7 +41,9 @@ pub fn append_confunit(config_unit: ConfigUnit) -> std::io::Result<()> {
         .open(&config_path)?;
     //We need to check if the config file itself is empty; if it is we will overwrite it only
     // with the given ConfigUnit.
-    if serialize == default_val /*Check if the serialized value is empty*/ {
+    if serialize == default_val
+    /*Check if the serialized value is empty*/
+    {
         //create a new configfile with only the given ConfigUnit as its program.:
         debugf!("Got default config, writing to file without any appends.");
         let new_conf_file = ConfigFile::new(vec![config_unit]);
@@ -79,7 +81,7 @@ pub fn destroy_pids() {
 
 pub fn get_pid_path() -> PathBuf {
     let path = BaseDirs::new().expect("Failed to get home directory");
-    let pid_dir = path.data_dir().join("nustart").join("pid.txt");
+    let pid_dir = path.data_dir().join("nustart").join("pids.json");
     if let Some(parent) = pid_dir.parent() {
         debugf!("Creating directory {:?}", parent);
         std::fs::create_dir_all(parent).expect("failed to create config directory");
@@ -93,10 +95,12 @@ pub fn get_pid_path() -> PathBuf {
     pid_dir
 }
 
-
 pub fn write_pid(pid: PidFile) -> std::io::Result<()> {
     let path = get_pid_path();
-    let mut file = std::fs::File::options().write(true).truncate(true).open(path)?;
+    let mut file = std::fs::File::options()
+        .write(true)
+        .truncate(true)
+        .open(path)?;
     use std::io::Write;
     let content = serde_json::to_string_pretty(&pid)?;
     writeln!(&mut file, "")?; //nuke the file first.
@@ -107,14 +111,14 @@ pub fn write_pid(pid: PidFile) -> std::io::Result<()> {
 pub fn get_pids(call: &EvaluatedCall) -> Result<Vec<PidUnit>, nu_protocol::LabeledError> {
     let pid_path = get_pid_path();
     let contents = std::fs::read_to_string(&pid_path).expect("failed to read pid file");
-    let file: PidFile = serde_json::from_str(&contents)
-        .map_err(|e| {
-            use nu_protocol::LabeledError;
-            make_error!(
-                format!("An Error While parsing pid file: {}", e),
-                "Maybe the file is invalid?",
-                call.head
-            )
-        })?;
+    let file: PidFile = serde_json::from_str(&contents).map_err(|e| {
+        use nu_protocol::LabeledError;
+        make_error!(
+            format!("An Error While parsing pid file: {}", e),
+            "Maybe the file is invalid?",
+            call.head
+        )
+    })?;
     Ok(file.get_pids())
 }
+
