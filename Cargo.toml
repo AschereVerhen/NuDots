@@ -6,5 +6,6 @@ edition = "2024"
 [dependencies]
 nu-plugin = "0.109.1"
 nu-protocol = "0.109.1"
+plugincmd_procmacro = { version = "0.1.0", path = "src/plugincmd_procmacro" }
 syscalls = { version = "0.7.0", features = ["all"] }
 which = "8.0.0"

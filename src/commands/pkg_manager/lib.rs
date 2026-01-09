@@ -1,45 +1,36 @@
 use nu_plugin::{EngineInterface, EvaluatedCall};
 use nu_protocol::LabeledError;
 
-use crate::{
-    commands::utils::{anyoneof::anyoneof_raw, detectos},
-    errors::MyError,
-};
+use crate::{commands::utils::{anyoneof::anyoneof_raw, detectos}, debug_started, errors::MyError};
 
 use crate::debugf;
 
 use crate::syscalls::getresuid::userisroot;
 
 pub fn detect_priv<'a>() -> Result<&'a str, MyError> {
-    debugf!(detect_priv, "start");
-
-    let options: Vec<&str> = vec!["sudo", "doas", "run0"];
-    debugf!(detect_priv, "candidate privilege executors = {:?}", &options);
-
-    let priv_exec = anyoneof_raw(&options);
-    match &priv_exec {
-        Ok(v) => debugf!(detect_priv, "detected privilege executor = {}", v),
-        Err(e) => debugf!(detect_priv, "failed to detect privilege executor: {:?}", e),
-    }
-    let priv_exec = priv_exec?;
-
-    Ok(priv_exec)
+    debug_started!(detect_priv);
+    let options: Vec<&str> = vec!["sudo", "doas", "run0", "pkexec"];
+    let got = match anyoneof_raw(&options) {
+        Ok(res) => {
+            debugf!(detect_priv, "detected '{}'", res);
+            *res
+        },
+        Err(e) => return Err(e),
+    };
+    Ok(got)
 }
 
 pub fn detect_archpkg<'a>() -> Result<&'a str, MyError> {
-    debugf!(detect_archpkg, "start");
-
+    debug_started!(detect_priv);
     let options: Vec<&str> = vec!["paru", "yay", "pacman"];
-    debugf!(detect_archpkg, "candidate package managers = {:?}", options);
-
-    let detected = anyoneof_raw(&options);
-    match &detected {
-        Ok(v) => debugf!(detect_archpkg, "detected package manager = {}", v),
-        Err(e) => debugf!(detect_archpkg, "failed to detect package manager: {:?}", e),
-    }
-    let detected = detected?;
-
-    Ok(detected)
+    let got = match anyoneof_raw(&options) {
+        Ok(res) => {
+            debugf!(detect_priv, "detected '{}'", res);
+            *res
+        },
+        Err(e) => return Err(e),
+    };
+    Ok(got)
 }
 
 pub fn create_command(
@@ -111,19 +102,12 @@ pub fn create_command(
 
     let mut pkg_args: Vec<String> =
         opspec.args.iter().map(|e| e.to_string()).collect();
-    debugf!(create_command, "base pkg_args = {:?}", pkg_args);
 
     if no_confirm {
-        debugf!(create_command, "no_confirm enabled, extending args");
         pkg_args.extend(opspec.nc_arg.iter().map(|e| e.to_string()));
     }
 
-    debugf!(create_command, "pkg_args after no_confirm = {:?}", pkg_args);
-
     let is_root = userisroot();
-    debugf!(create_command, "userisroot() = {}", is_root);
-    debugf!(create_command, "manager.req_sudo() = {}", manager.req_sudo());
-
     let command: String;
 
     if !is_root || manager.req_sudo() {
@@ -213,15 +197,11 @@ macro_rules! manager_to_str {
 
 impl Manager {
     pub fn req_sudo(&self) -> bool {
-        let needs = !matches!(self, Manager::Paru | Manager::Yay);
-        debugf!(Manager_req_sudo, "manager={} => {}", self, needs);
-        needs
+        !matches!(self, Manager::Paru | Manager::Yay)
     }
 
     pub fn as_str(&self) -> &'static str {
-        let s = manager_to_str!(self);
-        debugf!(Manager_as_str, "manager={:?} => {}", self, s);
-        s
+        manager_to_str!(self)
     }
 }
 
@@ -258,14 +238,6 @@ impl OpSpec {
         nc_arg: &'static [&'static str],
         needs_root: bool,
     ) -> Self {
-        debugf!(
-            OpSpec_new, 
-            "command={}, args={:?}, nc_arg={:?}, needs_root={}",
-            command,
-            args,
-            nc_arg,
-            needs_root
-        );
         Self {
             command,
             args,
@@ -277,13 +249,6 @@ impl OpSpec {
 
 impl Manager {
     pub fn op_spec(&self, op: PkgOp) -> Option<OpSpec> {
-        debugf!(
-            Manager_op_spec, 
-            "resolving op spec for manager={} op={:?}",
-            self,
-            op
-        );
-
         use Manager::*;
         use PkgOp::*;
 
