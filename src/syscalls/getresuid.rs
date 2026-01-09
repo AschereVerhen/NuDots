@@ -20,5 +20,5 @@ pub fn getresuid() -> (u32, u32, u32) {
 
 pub fn userisroot() -> bool {
     let (realuid, effectiveuid, saveduid) = getresuid();
-    return realuid == effectiveuid && effectiveuid == saveduid;
+    return realuid == 0 && realuid == effectiveuid && effectiveuid == saveduid;
 }

@@ -19,6 +19,7 @@ pub enum Distro {
     Suse,
     UnknownLinux,
 }
+#[derive(Debug)]
 pub enum OS {
     Linux(Distro),
     UnknownOS,

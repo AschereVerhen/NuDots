@@ -44,7 +44,7 @@ impl PluginCommand for Install {
                 result: None,
             },
             nu_protocol::Example {
-                example: "['waybar', 'startx', 'bluetoothctl'] | nudo pkg install",
+                example: "['waybar', 'startx', 'bluetoothctl'] | nupkg install",
                 description: "Also takes in from stdin.",
                 result: None,
             }
