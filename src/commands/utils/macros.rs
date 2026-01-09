@@ -10,12 +10,12 @@ pub static DEBUG_ENABLED: std::sync::LazyLock<bool> = std::sync::LazyLock::new(|
 macro_rules! debugf {
     ($func:ident, $fmt:expr $(, $args:expr)* $(,)?) => {{
         #[cfg(debug_assertions)]
-        const ENABLE_DEBUG: bool = true;
+        let enable_debug: bool = true;
 
         #[cfg(not(debug_assertions))]
-        const ENABLE_DEBUG: bool = crate::macros::DEBUG_ENABLED;
+        let enable_debug: bool = *crate::macros::DEBUG_ENABLED;
 
-        if ENABLE_DEBUG {
+        if enable_debug {
             eprintln!(
                 "[DEBUG]|{}|({}): {}",
                 module_path!(),
@@ -29,12 +29,12 @@ macro_rules! debugf {
 macro_rules! debug_started {
     ($func:ident) => {{
         #[cfg(debug_assertions)]
-        const ENABLE_DEBUG: bool = true;
+        let enable_debug: bool = true;
 
         #[cfg(not(debug_assertions))]
-        const ENABLE_DEBUG: bool = crate::macros::DEBUG_ENABLED;
+        let enable_debug: bool = *crate::macros::DEBUG_ENABLED;
 
-        if ENABLE_DEBUG {
+        if enable_debug {
             eprintln!(
                 "[DEBUG]|{}|: {} Started.",
                 module_path!(),
