@@ -9,6 +9,7 @@ if not ($nu.data-dir | path join "toggles" | path exists) {
 ###Sourcing Functions###
 $env.PERSISTENT_TOGGLES = ($nu.data-dir | path join "toggles" | open | from json)
 const functions_path = ($nu.config-path | path dirname | path join "functions")
+const config_path = ($functions_path | path dirname)
 if not ($functions_path | path exists) {
     mkdir $functions_path
     print "Nu shell scripts are to be stored at:" $functions_path
@@ -49,6 +50,7 @@ if ($colors and (which wal | is-not-empty) and not ((tty) =~ "tty")) {
 }
 ###End of section###
 
+source ($config_path | path join "userenv.nu")
 
 ###AutoStarts###
 if ($nu.os-info.name == "linux" or $nu.os-info.name =~ "bsd") {
@@ -58,12 +60,4 @@ if (which fastfetch | is-not-empty) { fastfetch --config examples/10 }
 init-all ##Initialize the keybinds for fzf integration
 astart
 ###End Of section###
-
-# --- Aliases ---
-alias ff = fastfetch --config examples/10
-alias search = paru --noconfirm
-alias bvum = nvim
-alias nvum = nvim
-alias poweroff = sudo systemctl poweroff -i
-alias ka = killall
 
